@@ -1,7 +1,6 @@
 <template>
   <div class="item">
-    recorder?
-
+    recorder
     <div className="flex flex-col items-center">
       <button @click="toggleRecording"
         class="d-flex items-center justify-center w-20 h-20 rounded-full bg-red-500 text-white"
