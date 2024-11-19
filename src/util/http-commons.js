@@ -11,6 +11,16 @@ function localAxios() {
   return instance
 }
 
+function audioAxios() {
+  const instance = axios.create({
+    baseURL: VITE_VUE_API_URL,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+  return instance
+}
+
 function exAxios() {
   const instance = axios.create({
     headers: {
@@ -20,4 +30,4 @@ function exAxios() {
   return instance
 }
 
-export { localAxios, exAxios }
+export { localAxios, exAxios, audioAxios }
