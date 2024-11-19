@@ -94,7 +94,7 @@ const handleStartRecording = async () => {
     mediaRecorderRef.value.onstop = () => {
       const audioBlob = new Blob(audioChunks.value, { type: 'audio/wav' });
       console.log("!sendTalk!!!")
-      sendTalk({ file: audioBlob }, (data) => {
+      sendTalk(audioBlob, (data) => {
         console.log(data)
 
       }, (error) => { console.log(error) })
