@@ -1,40 +1,57 @@
 <template>
-  <div class="item">
-    recorder
-    <div className="flex flex-col items-center">
-      <button @click="toggleRecording"
-        class="d-flex items-center justify-center w-20 h-20 rounded-full bg-red-500 text-white"
-        style="border-radius: 30rem;" :class="isRecording ? 'isRecording' : 'isNotRecording'">
-        <svg xmlns="http://www.w3.org/2000/svg" class="" style="width:3rem;height:3rem" viewBox="0 0 24 24"
-          fill="currentColor">
-          <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
-          <path
-            d="M19 11a1 1 0 00-2 0 5 5 0 01-10 0 1 1 0 00-2 0 7 7 0 0013.54 2.1A1 1 0 0019 13a1 1 0 00-1-2zM12 18a1 1 0 00-1 1v2a1 1 0 002 0v-2a1 1 0 00-1-1z" />
-        </svg>
-      </button>
-      <p v-show="!permissionGranted" className="text-red-500 mt-4">마이크 권한이 필요합니다.</p>
-      <audio v-show="audioURL" controls className="mt-4">
-        <source :src="audioURL" type="audio/wav" />
-        브라우저가 오디오를 지원하고 있지 않습니다.
-      </audio>
+  <div class="item justify-center items-center">
+    <div class="d-flex flex-grow flex-column w-100 h-100">
+      <div v-show="!audioURL" class="msgBox" style="position:absolute ">
+        <div v-for="msg in msgList">
+          <div class="msg" :class="{ 'send': msg.sender }"> {{ msg.text }}
+          </div>
+        </div>
+      </div>
+      <div style="position:relative" class="justify-center d-flex align-center flex-column items-center flex-grow-1">
+
+        <button @click="toggleRecording"
+          class="d-flex items-center justify-center recordIcon rounded-full bg-red-500 text-white"
+          style="border-radius: 30rem;" :class="isRecording ? 'isRecording' : 'isNotRecording'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="" style="width:3rem;height:3rem" viewBox="0 0 24 24"
+            fill="currentColor">
+            <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
+            <path
+              d="M19 11a1 1 0 00-2 0 5 5 0 01-10 0 1 1 0 00-2 0 7 7 0 0013.54 2.1A1 1 0 0019 13a1 1 0 00-1-2zM12 18a1 1 0 00-1 1v2a1 1 0 002 0v-2a1 1 0 00-1-1z" />
+          </svg>
+        </button>
+        <p v-show="!permissionGranted" class="mt-4" style="color:white">마이크 권한이 필요합니다.</p>
+        <audio v-show="audioURL" :src="audioURL" controls class="mt-10">
+          브라우저가 오디오를 지원하지 않습니다.
+        </audio>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { sendTalk } from '@/api/record.js'
+
+interface Msg {
+  sender: boolean;
+  text: String;
+  index: Number;
+}
 
 // 상태 관리
 const isRecording = ref(false);
-const audioURL = ref<string | null>(null);
+const audioURL = ref<string>("");
 const permissionGranted = ref(false);
 
 const mediaRecorderRef = ref<MediaRecorder | null>(null);
 const audioChunks = ref<Blob[]>([]);
+const msgList = ref<Msg[]>([]);
 const socket = ref<WebSocket | null>(null);
 
 // WebSocket 초기화
 onMounted(() => {
+  msgList.value.push({ sender: true, text: "음, 오늘 날씨도 좋아서 혼자 여행하고 싶은데 어딜 가는게 좋을까?", index: 0 });
+  msgList.value.push({ sender: false, text: "잘 안 들려요. 다시 한 번 말씀해주시겠어요?", index: 1 })
   socket.value = new WebSocket('wss://localhost:80/audio');
 
   socket.value.onopen = () => console.log('WebSocket 연결됨');
@@ -70,23 +87,21 @@ const handleStartRecording = async () => {
     audioChunks.value = [];
 
     mediaRecorderRef.value.ondataavailable = (event) => {
+      console.log("ondataavailable", event)
       audioChunks.value.push(event.data);
     };
 
     mediaRecorderRef.value.onstop = () => {
       const audioBlob = new Blob(audioChunks.value, { type: 'audio/wav' });
+      console.log("!sendTalk!!!")
+      sendTalk({ file: audioBlob }, (data) => {
+        console.log(data)
+
+      }, (error) => { console.log(error) })
+
+      console.log("!!!sendTalk!!---")
       audioURL.value = URL.createObjectURL(audioBlob);
-
-      // JSON 데이터 예제
-      const jsonData = {
-        userid: 'user123',
-        timestamp: new Date().toISOString(),
-        sender: 'RecorderComponent',
-        textMessage: 'Here is the recorded audio',
-      };
-
-      // WebSocket으로 음성 데이터와 JSON 데이터 전송
-      sendAudioWithJson(audioBlob, jsonData);
+      sendAudioWithJson(audioBlob);
     };
 
     mediaRecorderRef.value.start();
@@ -114,38 +129,48 @@ const toggleRecording = () => {
     handleStartRecording();
   }
 };
-
-// 음성 및 JSON 데이터를 WebSocket으로 전송
-const sendAudioWithJson = (audioBlob: Blob, jsonData: object) => {
+const sendAudioWithJson = (audioBlob: Blob) => {
   if (!socket.value || socket.value.readyState !== WebSocket.OPEN) {
     console.error('WebSocket이 열려 있지 않습니다.');
     return;
   }
 
-  const jsonString = JSON.stringify(jsonData);
-  const delimiter = '--SPLIT--';
-
   audioBlob.arrayBuffer().then((audioBuffer) => {
-    const jsonBytes = new TextEncoder().encode(jsonString + delimiter);
-    const audioBytes = new Uint8Array(audioBuffer);
-
-    const combinedBuffer = new Uint8Array(jsonBytes.byteLength + audioBytes.byteLength);
-    combinedBuffer.set(jsonBytes, 0);
-    combinedBuffer.set(audioBytes, jsonBytes.byteLength);
-
-    console.log('전송할 데이터 (ArrayBuffer):', combinedBuffer);
+    console.log('전송할 음성 데이터 (ArrayBuffer):', audioBuffer);
 
     if (socket.value?.readyState === WebSocket.OPEN) {
-      socket.value.send(combinedBuffer.buffer);
-      console.log('데이터가 전송되었습니다.');
+      socket.value.send(audioBuffer);
+      console.log('음성 데이터가 전송되었습니다.');
     } else {
       console.error('WebSocket이 연결되지 않았습니다.');
     }
+  }).catch((error) => {
+    console.error('음성 데이터 전송 중 오류 발생:', error);
   });
 };
 </script>
 
 <style scoped>
+.msgBox {
+  width: 100vw;
+
+}
+
+.msg {
+  padding: 1rem;
+  width: 50vw;
+  color: white;
+  margin: 0 1rem 0rem 0;
+  text-shadow: -1px 0px rgb(39, 39, 39), 0px 1px rgb(70, 70, 69), 1px 0px rgb(78, 78, 78), 0px -1px rgb(39, 39, 39);
+}
+
+.send {
+
+  margin-left: auto;
+  text-align: right;
+
+}
+
 @keyframes pulse {
 
   0%,
@@ -159,7 +184,7 @@ const sendAudioWithJson = (audioBlob: Blob, jsonData: object) => {
 }
 
 .isRecording {
-  background-color: red;
+  background-color: rgb(248, 164, 164);
   transform: scale(1.25);
   transition: transform 0.3s ease-in-out;
   animation: pulse 1s infinite;
@@ -172,8 +197,10 @@ const sendAudioWithJson = (audioBlob: Blob, jsonData: object) => {
 
 .item {
   margin-top: 2rem;
-  display: flex;
   position: relative;
+  height: calc(100vh - 10rem);
+  width: 100vw;
+
 }
 
 .details {
@@ -198,47 +225,33 @@ h3 {
   color: var(--color-heading);
 }
 
-@media (min-width: 1024px) {
-  .item {
-    margin-top: 0;
-    padding: 0.4rem 0 1rem calc(var(--section-gap) / 2);
-  }
+.recordIcon {
+  height: 3.75rem;
+  width: 3.75rem;
+  padding: 0.35rem;
+}
 
-  i {
-    top: calc(50% - 25px);
-    left: -26px;
-    position: absolute;
-    border: 1px solid var(--color-border);
-    background: var(--color-background);
-    border-radius: 8px;
-    width: 50px;
-    height: 50px;
-  }
+audio:hover,
+audio:focus,
+audio:active {
+  -webkit-box-shadow: 15px 15px 20px rgba(0, 0, 0, 0.4);
+  -moz-box-shadow: 15px 15px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 15px 15px 20px rgba(0, 0, 0, 0.4);
+  -webkit-transform: scale(1.05);
+  -moz-transform: scale(1.05);
+  transform: scale(1.05);
+}
 
-  .item:before {
-    content: ' ';
-    border-left: 1px solid var(--color-border);
-    position: absolute;
-    left: 0;
-    bottom: calc(50% + 25px);
-    height: calc(50% - 25px);
-  }
 
-  .item:after {
-    content: ' ';
-    border-left: 1px solid var(--color-border);
-    position: absolute;
-    left: 0;
-    top: calc(50% + 25px);
-    height: calc(50% - 25px);
-  }
-
-  .item:first-of-type:before {
-    display: none;
-  }
-
-  .item:last-of-type:after {
-    display: none;
-  }
+audio {
+  -webkit-transition: all 0.5s linear;
+  -moz-transition: all 0.5s linear;
+  -o-transition: all 0.5s linear;
+  transition: all 0.5s linear;
+  -moz-box-shadow: 2px 2px 4px 0px #dd93cd;
+  -webkit-box-shadow: 2px 2px 4px 0px #dd93cd;
+  -moz-border-radius: 7px 7px 7px 7px;
+  -webkit-border-radius: 1.75rem 1.75rem 1.75rem 1.75rem;
+  /* border-radius: 7px 7px 7px 7px; */
 }
 </style>
