@@ -1,8 +1,8 @@
 import { audioAxios } from '@/util/http-commons'
-const local = audioAxios()
+const audio = audioAxios()
 
 function sendTalk(data, success, fail) {
-  local.post(`/api/talk`, data).then(success).catch(fail)
+  audio.post(`/api/talk`, data).then(success).catch(fail)
 }
 
 export { sendTalk }

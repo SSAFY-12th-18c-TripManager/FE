@@ -93,8 +93,12 @@ const handleStartRecording = async () => {
 
     mediaRecorderRef.value.onstop = () => {
       const audioBlob = new Blob(audioChunks.value, { type: 'audio/wav' });
-      console.log("!sendTalk!!!")
-      sendTalk(audioBlob, (data) => {
+      console.log("!sendTalk!!!", audioChunks.value)
+      const formData = new FormData();
+      formData.append("file", audioBlob, "audio.wav"); // "audio.wav"는 서버에서 파일명을 필요로 할 경우 사용
+
+
+      sendTalk(formData, (data) => {
         console.log(data)
 
       }, (error) => { console.log(error) })

@@ -1,0 +1,9 @@
+$body-font-family: 'Noto Sans KR', sans-serif;
+
+@use 'vuetify/styles' with (
+  $body-font-family: $body-font-family,
+  $heading-font-family: $body-font-family
+);
+.v-btn {
+  font-family: 'Noto Sans KR', sans-serif;
+}
