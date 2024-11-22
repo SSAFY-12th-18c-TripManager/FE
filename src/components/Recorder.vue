@@ -304,20 +304,24 @@ const handleStartRecording = async () => {
 
     mediaRecorderRef.value.onstop = () => {
       const audioBlob = new Blob(audioChunks.value, { type: 'audio/wav' });
-      blobToByteArray(audioBlob).then((byteArray) => {
-        sendVoiceWs({
-          senderId: senderId.value,
-          audio: byteArray
-        });
-      });
+
+      //
+      //    blobToByteArray(audioBlob).then((byteArray) => {
+
+      //});
 
       // saveByteArrayAsFile(byteArray, "bin.bin");
-      // const reader = new FileReader();
-      // reader.onloadend = () => {
-      // const base64String = reader.result.split(',')[1]; // Base64 문자열 추출
-      // };
-      // reader.readAsDataURL(audioBlob); // Base64로 변환된 파일 데이터
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result.split(',')[1]; // Base64 문자열 추출
+        sendVoiceWs({
+          senderId: senderId.value,
+          audio: base64String
+        });
+      };
+      reader.readAsDataURL(audioBlob); // Base64로 변환된 파일 데이터
       // audioURL.value = "/public/audio.mp3";
+
       // audioRef.value?.play()
       //sendVoice(formData);
       // sendAudioWithJson(audioBlob);
