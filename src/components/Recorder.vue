@@ -3,8 +3,16 @@
     <div class="d-flex flex-grow flex-column w-100 h-100">
       <div ref="ml" v-show="msgList" class="msgBox overflow-scroll position-absolute"> {{ answer }}
         <div v-for="msg in msgList">
-          <div class="msg" :class="{ 'send': msg.isSender }"> {{ msg.content }}
+          <div class="d-flex" :class="{ 'send': msg.isSender }">
+            <div class="msg text-color2 font-weight-medium"> {{ msg.content }}
+            </div>
+            <h5 class="text-color5 d-flex pt-2 align-end justify-end">
+              <div class="mb-6">
+                {{ msg.timestamp }}
+              </div>
+            </h5>
           </div>
+
         </div>
       </div>
       <div style="margin-top:25rem;"
@@ -15,7 +23,7 @@
             <div id="gradient2"> </div>
           </div>
           <button @click="toggleRecording"
-            class="position-absolute  d-flex items-center justify-center recordIcon  text-white"
+            class="position-absolute  d-flex items-center justify-center recordIcon  text-color5"
             style="top:0rem; ; left:0rem; z-index:11" :class="isRecording ? 'isRecording' : 'isNotRecording'">
             <svg xmlns="http://www.w3.org/2000/svg" style="width:50px;height:50px" viewBox="0 0 24 24"
               fill="currentColor">
@@ -32,7 +40,7 @@
           <h2 v-if="!isRecording" class="position-absolute mt-8">■</h2>
           <av-circle class="position-absolute" :outline-width="0" :progress-width="2" outline-color="hotpink"
             bar-color="hotpink" progress-color="hotpink" :outline-meter-space="5" :playtime="false"
-            playtime-color="transparent" :src="audioURL" :audio-controls="true">
+            playtime-color="transparent" :src="audioURL" :audio-controls="false">
             브라우저가 오디오를 지원하지 않습니다.
           </av-circle>
         </div>
@@ -46,10 +54,10 @@ import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue';
 import { sendQuestionVoice, sendQuestionText } from '@/api/record.js'
 import { Client } from '@stomp/stompjs';
 interface Msg {
-  content: String,
-  senderId: Number,
-  isSender: Boolean,
-  timestamp: Date,
+  content: string,
+  senderId: number,
+  isSender: boolean,
+  timestamp: string,
   voice: Blob
 }
 
@@ -70,12 +78,35 @@ const mediaRecorderRef = ref<MediaRecorder | null>(null);
 const audioChunks = ref<Blob[]>([]);
 const msgList = ref<Msg[]>([]);
 const socket = ref<WebSocket | null>(null);
+const senderId = ref<number>(3);
 const ml = ref<HTMLElement[]>([]); // ref 배열 선언
 
 const client = ref<Client | null>(null);
 const pps = () => {
-  msgList.value.push({ isSender: true, content: "음, 오늘 날씨도 좋아서 혼자 여행하고 싶은데 어딜 가는게 좋을까? " + Math.random(), index: 0 });
+  msgList.value.push({ isSender: true, content: "음, 오늘 날씨도 좋아서 혼자 여행하고 싶은데 어딜 가는게 좋을까? " + Math.random(), timestamp: getRelativeTime('2024-11-22T15:35:43') });
 }
+
+function getRelativeTime(dateString) {
+  const now = new Date();
+  const past = new Date(dateString);
+  const diff = now - past; // 차이를 밀리초로 계산
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) {
+    return `${days}일 전`;
+  } else if (hours > 0) {
+    return `${hours}시간 전`;
+  } else if (minutes > 0) {
+    return `${minutes}분 전`;
+  } else {
+    return `방금 전`;
+  }
+}
+
 
 
 const scrollToBottom = () => {
@@ -114,26 +145,27 @@ onUnmounted(() => {
   }
   cancelAnimationFrame(animationFrameId);
   audioContext.value?.close();
+  socket.value?.close();
 });
 
-import SockJS from 'sockjs-client';
+// import SockJS from 'sockjs-client';
 const answer = ref(null);
 onMounted(() => {
-  client.value = new Client({
+  /*client.value = new Client({
     webSocketFactory: () => new SockJS('https://localhost:80/tm/ws'), // SockJS 설정
     debug: function (str) {
       console.log(str);
     },
     onConnect: () => {
-      console.log('STOMP 연결 성공');
-      client.value.subscribe('/topic/3', function (receive) {
-        console.log('/topic/3', receive);
+      // console.log('STOMP 연결 성공');
+      client.value.subscribe(`/topic/${senderId.value}`, ({ body: receive }) => {
+        console.log(`/topic/${senderId.value}`, receive);
         msgList.value.push({ senderId: receive.senderId, isSender: receive.isSender, content: receive?.content, timestamp: receive.timestamp });
         if (!receive.isSender) {
           console.log("보이스 추가")
           try {
-            const audioBlob: Blob = base64ToBlob(receive?.voice, "audio/mpeg");
-            audioURL.value = URL.createObjectURL(audioBlob);
+            // const audioBlob: Blob = base64ToBlob(receive?.voice, "audio/mpeg");
+            // audioURL.value = URL.createObjectURL(receive?.voice);
           } catch (error) {
             console.error("Base64 to Blob 변환 중 오류 발생:", error);
           }
@@ -147,7 +179,7 @@ onMounted(() => {
     },
   });
   client.value.activate();
-
+  */
   scrollToBottom();
   audioRef.value = document.querySelector('audio')
   if (audioRef.value) {
@@ -162,12 +194,8 @@ onMounted(() => {
     isPlaying.value = !audioRef.value.paused;
   }
 
-  //socket.value = new WebSocket('wss://localhost:80/ws');
-  //socket.value.onopen = () => console.log('WebSocket 연결됨');
-  // socket.value.onmessage = (event) => {
-  //   console.log('서버에서 처리된 데이터 수신:', event.data);
-  // };
-  // socket.value.onclose = () => console.log('WebSocket 연결 종료');
+  connectWebSocket();
+
   requestPermission();
 
   // return () => {
@@ -175,6 +203,44 @@ onMounted(() => {
   // };
 
 });
+
+const connectWebSocket = () => {
+  socket.value = new WebSocket('wss://localhost:80/ws');
+  socket.value.onopen = () => {
+    console.log('WebSocket 연결됨');
+    // statusMessage.value = 'WebSocket 연결 완료. 녹음 준비됨.';
+  };
+
+  socket.value.onmessage = (event) => {
+
+
+    console.log('서버 응답:', event.data);
+  };
+
+  socket.value.onclose = () => {
+    console.log('WebSocket 연결 종료');
+  };
+
+  socket.value.onerror = (error) => {
+
+    console.error('WebSocket 오류 발생:', error);
+
+  };
+};
+/*
+const sendQuestionVoiceVWS = (audioBlob) => {
+  if (socket.value && socket.value.readyState === WebSocket.OPEN) {
+    const payload = {
+      endpoint: '/api/test',
+      body: audioBlob,
+    };
+    socket.value.send(JSON.stringify(payload)); // 서버에 메시지 전송
+    console.log('메시지 전송:', payload);
+  } else {
+    console.error('WebSocket이 연결되어 있지 않습니다.');
+  }
+};
+*/
 
 const calculateVolume = () => {
   if (analyser.value && dataArray.value) {
@@ -227,7 +293,6 @@ const handleStartRecording = async () => {
     const bufferLength = analyser.value.frequencyBinCount;
     dataArray.value = new Uint8Array(bufferLength);
 
-    // MediaStreamAudioSourceNode 생성 및 연결
     const source = audioContext.value.createMediaStreamSource(stream.value);
     source.connect(analyser.value);
     startVolumeMonitoring();
@@ -239,32 +304,19 @@ const handleStartRecording = async () => {
 
     mediaRecorderRef.value.onstop = () => {
       const audioBlob = new Blob(audioChunks.value, { type: 'audio/wav' });
-      const formData = new FormData();
-      formData.append("file", audioBlob, "audio.wav"); // "audio.wav"는 서버에서 파일명을 필요로 할 경우 사용
-      formData.append('senderId', '3');
-
-      // FileReader를 사용하여 Base64로 변환
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result.split(',')[1]; // Base64 문자열 추출
-        console.log("Base64 Audio String:", base64String);
-
-        // 필요한 작업 예시: 서버 전송
+      blobToByteArray(audioBlob).then((byteArray) => {
         sendVoiceWs({
-          senderId: '3',
-          file: base64String, // Base64로 변환된 데이터
+          senderId: senderId.value,
+          audio: byteArray
         });
-      };
-
-      // Blob 데이터를 Base64로 읽기
-      reader.readAsDataURL({
-        senderId: '3',
-        file: base64String, // Base64로 변환된 파일 데이터
       });
 
-
-
-      sendVoiceWs(formData);
+      // saveByteArrayAsFile(byteArray, "bin.bin");
+      // const reader = new FileReader();
+      // reader.onloadend = () => {
+      // const base64String = reader.result.split(',')[1]; // Base64 문자열 추출
+      // };
+      // reader.readAsDataURL(audioBlob); // Base64로 변환된 파일 데이터
       // audioURL.value = "/public/audio.mp3";
       // audioRef.value?.play()
       //sendVoice(formData);
@@ -278,17 +330,20 @@ const handleStartRecording = async () => {
   }
 };
 
-const sendVoiceWs = (formData: FormData) => {
-  console.log("formData", formData)
-  if (!client.value?.connected) {
-    console.error('STOMP 연결이 활성화되지 않았습니다.');
+
+const blobToByteArray = async (blob) => {
+  const arrayBuffer = await blob.arrayBuffer(); // ArrayBuffer로 변환
+  return new Uint8Array(arrayBuffer);
+}
+
+const sendVoiceWs = (formData) => {
+  console.log("sendVoiceWs : formData", formData)
+  if (!socket.value || socket.value.readyState !== WebSocket.OPEN) {
+    console.error('WebSocket이 열려 있지 않습니다.');
     return;
   }
-  if (client.value && formData) {
-    client.value.publish({
-      destination: '/app/query',
-      body: formData
-    });
+  if (socket.value && formData) {
+    socket.value.send(formData);
   }
 };
 
@@ -306,7 +361,6 @@ const sendText = (response) => {
     try {
       const audioBlob: Blob = base64ToBlob(data?.answerBlob, "audio/mpeg");
       audioURL.value = URL.createObjectURL(audioBlob);
-      // downloadBlob(audioBlob, "audio.mp3");
     } catch (error) {
       console.error("Base64 to Blob 변환 중 오류 발생:", error);
     }
@@ -318,6 +372,21 @@ const downloadBlob = (blob: Blob, filename: string) => {
   link.download = filename;
   link.click();
 };
+
+const saveByteArrayAsFile = (byteArray, fileName) => {
+  const blob = new Blob([byteArray], { type: 'application/octet-stream' }); // Blob 생성
+  const url = URL.createObjectURL(blob); // Blob URL 생성
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName; // 파일 이름 지정
+  document.body.appendChild(a);
+  a.click(); // 다운로드 트리거
+  document.body.removeChild(a);
+
+  URL.revokeObjectURL(url); // Blob URL 해제
+}
+
 
 const base64ToBlob = (base64: string, mimeType: string = "audio/wav"): Blob => {
   const byteCharacters = atob(base64);
@@ -392,19 +461,44 @@ const adjustAnimationSpeed = () => {
   width: 100vw;
   max-height: 70vh;
   height: 55vh;
+
+  mask-image: linear-gradient(rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.5) 5%, rgb(73, 148, 144) 12%);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: cover;
+  font-size: 0.875rem;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: cover;
 }
 
 .msg {
   padding: 1rem;
   width: 50vw;
-  color: white;
   margin: 0 1rem 0rem 0;
-  text-shadow: -1px 0px rgb(39, 39, 39), 0px 1px rgb(70, 70, 69), 1px 0px rgb(78, 78, 78), 0px -1px rgb(39, 39, 39);
+  margin: 1rem;
+  border-radius: 0.75rem;
+  line-height: 1.5;
+  word-break: break-all;
+  /* text-shadow: 1px 1px 2px rgb(var(--v-theme-color2)); */
+  background-color: rgb(var(--v-theme-color5));
+  /* opacity: 95%; */
+
+  mask-image: linear-gradient(rgb(73, 148, 144) 90%, rgba(0, 0, 0, 0.5) 95%, rgba(0, 0, 0, 0) 100%);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: cover;
+  font-size: 0.875rem;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: cover;
+  /* text-shadow: 10px 0px rgb(var(--v-theme-color1)), 0px 1px rgb(var(--v-theme-color1)) 1px 0px rgb(var(--v-theme-color1)), 0px -1px rgb(var(--v-theme-color1)); */
 }
 
 .send {
   margin-left: auto;
-  text-align: right;
+  text-align: left;
+  flex-direction: row-reverse;
 }
 
 @keyframes pulse {
@@ -458,7 +552,7 @@ i {
 }
 
 #gradient1 {
-  background: linear-gradient(70deg, rgb(10, 3, 15) 0%, rgb(64, 69, 149) 25%, rgb(10, 3, 15) 50%, rgb(64, 69, 149) 75%, rgb(10, 3, 15) 100%);
+  background: linear-gradient(70deg, #15222a 0%, rgb(64, 101, 149) 25%, #15222a 50%, rgb(64, 101, 149) 75%, #15222a 100%);
   z-index: 0;
   animation: Scroll 4s linear infinite;
   background-size: 300% 200%;
@@ -475,7 +569,7 @@ i {
 }
 
 #gradient2 {
-  background: radial-gradient(circle, rgb(0, 0, 0) 0%, rgb(207, 204, 205) 55%, rgb(139, 0, 139) 100%);
+  background: radial-gradient(circle, #15222a 0%, rgb(207, 204, 205) 55%, rgb(0, 65, 139) 100%);
   mix-blend-mode: color-dodge;
 }
 
@@ -499,7 +593,7 @@ div {
   height: 9rem;
   width: 9rem;
   display: grid;
-  mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.5) 55%, rgba(0, 0, 0, 0) 70%);
+  mask-image: radial-gradient(circle, rgb(73, 148, 144) 50%, rgba(0, 0, 0, 0.5) 55%, rgba(0, 0, 0, 0) 70%);
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: cover;

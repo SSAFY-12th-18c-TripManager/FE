@@ -40,4 +40,13 @@ function exAxios() {
   return instance
 }
 
-export { localAxios, exAxios, audioAxios, jsonAxios }
+function naverAxios(accessToken) {
+  return axios.create({
+    baseURL: '/naver-api',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json;charset=utf-8',
+    },
+  })
+}
+export { localAxios, exAxios, audioAxios, jsonAxios, naverAxios }

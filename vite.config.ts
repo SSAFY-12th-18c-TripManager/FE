@@ -6,12 +6,20 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import nightwatchPlugin from 'vite-plugin-nightwatch'
 
+// const { VITE_NAVER_API_URL } = import.meta.env
 // https://vite.dev/config/
 export default defineConfig({
   server: {
     https: {
       key: './mkcert/key.pem',
       cert: './mkcert/cert.pem',
+    },
+    proxy: {
+      '/naver-api': {
+        target: 'https://openapi.naver.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/naver-api/, ''),
+      },
     },
   },
   plugins: [vue(), vueJsx(), vueDevTools(), nightwatchPlugin()],
