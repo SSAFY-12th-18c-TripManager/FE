@@ -21,6 +21,16 @@ function audioAxios() {
   return instance
 }
 
+function jsonAxios() {
+  const instance = axios.create({
+    baseURL: VITE_VUE_API_URL,
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+    },
+  })
+  return instance
+}
+
 function exAxios() {
   const instance = axios.create({
     headers: {
@@ -30,4 +40,4 @@ function exAxios() {
   return instance
 }
 
-export { localAxios, exAxios, audioAxios }
+export { localAxios, exAxios, audioAxios, jsonAxios }

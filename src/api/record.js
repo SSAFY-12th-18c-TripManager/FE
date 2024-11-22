@@ -1,8 +1,13 @@
-import { audioAxios } from '@/util/http-commons'
+import { audioAxios, jsonAxios } from '@/util/http-commons'
 const audio = audioAxios()
+const json = jsonAxios()
 
-function sendTalk(data, success, fail) {
-  audio.post(`/api/talk`, data).then(success).catch(fail)
+function sendQuestionVoice(voice, success, fail) {
+  audio.post(`/api/question`, voice).then(success).catch(fail)
 }
 
-export { sendTalk }
+function sendQuestionText(text, success, fail) {
+  json.post(`/api/answer`, text).then(success).catch(fail)
+}
+
+export { sendQuestionVoice, sendQuestionText }
