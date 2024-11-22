@@ -205,7 +205,7 @@ onMounted(() => {
 });
 
 const connectWebSocket = () => {
-  socket.value = new WebSocket('wss://localhost:80/ws');
+  socket.value = new WebSocket('wss://localhost:8080/ws');
   socket.value.onopen = () => {
     console.log('WebSocket 연결됨');
     // statusMessage.value = 'WebSocket 연결 완료. 녹음 준비됨.';
