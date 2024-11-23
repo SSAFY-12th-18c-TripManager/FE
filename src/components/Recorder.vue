@@ -263,6 +263,7 @@ const startSpeechRecognition = () => {
   }
 
   recognition.onend = () => {
+    if (recognizedText.value == '') return
     isRecording.value = false
     msgList.value.push({
       isSender: true,
@@ -275,6 +276,7 @@ const startSpeechRecognition = () => {
       audio: recognizedText.value,
     })
     console.log('음성 인식이 종료되었습니다.')
+    recognizedText.value = ''
     startSpeechRecognition()
   }
   // 음성 인식 시작
