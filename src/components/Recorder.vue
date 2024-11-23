@@ -75,7 +75,7 @@
             :playtime="false"
             playtime-color="transparent"
             :src="audioURL"
-            :audio-controls="false"
+            :audio-controls="true"
           >
             브라우저가 오디오를 지원하지 않습니다.
           </av-circle>
@@ -241,7 +241,13 @@ onMounted(() => {
   //   socket.value?.close();
   // };
 })
-
+const speakAnswer = (res: string) => {
+  const utterance = new SpeechSynthesisUtterance(res)
+  utterance.lang = 'ko-KR' // 한국어 음성 설정
+  utterance.pitch = 1 // 음성 톤
+  utterance.rate = 1 // 음성 속도
+  window.speechSynthesis.speak(utterance) // 음성 합성 시작
+}
 const recognizedText = ref('')
 
 const startSpeechRecognition = () => {
@@ -265,6 +271,7 @@ const startSpeechRecognition = () => {
   recognition.onend = () => {
     if (recognizedText.value == '') return
     isRecording.value = false
+
     msgList.value.push({
       isSender: true,
       content: recognizedText.value,
@@ -291,14 +298,25 @@ const connectWebSocket = () => {
   }
 
   socket.value.onmessage = (event) => {
-    console.log('서버 응답:', event.data)
-    let d = JSON.parse(event.data)
-    console.log(d)
-    msgList.value.push({
-      isSender: false,
-      content: d.content,
-      timestamp: getRelativeTime(d.timestamp),
-    })
+    if (typeof event.data === 'string') {
+      console.log('서버 응답:', event.data)
+      let d = JSON.parse(event.data)
+      // speakAnswer(d.content) 이거 주석 풀면 프론트단에서 tts 재생됨
+      msgList.value.push({
+        isSender: false,
+        content: d.content,
+        timestamp: getRelativeTime(d.timestamp),
+      })
+    } else if (event.data instanceof ArrayBuffer) {
+      console.log('바이너리일 경우! ')
+      const byteArray = new Uint8Array(event.data)
+      try {
+        const audioBlob = new Blob([byteArray], { type: 'audio/mpeg' }) // Blob 생성
+        audioURL.value = URL.createObjectURL(audioBlob)
+      } catch (error) {
+        console.error('Blob 변환 중 오류 발생:', error)
+      }
+    }
   }
 
   socket.value.onclose = () => {
