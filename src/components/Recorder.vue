@@ -1,5 +1,6 @@
 <template>
   <div class="item justify-center items-center text-white">
+    <!-- <v-btn @click="audioPlay" ref="startButton"> start </v-btn> -->
     <div class="d-flex flex-grow flex-column w-100 h-100">
       <div ref="ml" v-show="msgList" class="msgBox overflow-scroll position-absolute">
         <div v-for="msg in msgList">
@@ -75,7 +76,8 @@
             :playtime="false"
             playtime-color="transparent"
             :src="audioURL"
-            :audio-controls="true"
+            :audio-controls="false"
+            :muted="true"
           >
             브라우저가 오디오를 지원하지 않습니다.
           </av-circle>
@@ -163,6 +165,24 @@ const scrollToBottom = () => {
 const listlength = computed(() => {
   return msgList.value.length
 })
+const startButton = ref()
+
+watch(audioURL, (newValue) => {
+  if (newValue && audioRef.value) {
+    audioRef.value.pause()
+    // 로딩 상태 확인 후 재생
+    audioRef.value.oncanplay = () => {
+      audioPlay()
+    }
+
+    //startButton.value.$el.click()
+    // audioRef.value.src = newValue; // 새로운 URL 설정
+    //   audioRef.value.play().catch((err) => {
+    //     console.error('Audio play failed:', err)
+    //   }) // 재생 시도
+  }
+})
+
 watch(listlength, async () => {
   scrollToBottom()
   await nextTick()
@@ -221,6 +241,7 @@ onMounted(() => {
   */
   scrollToBottom()
   audioRef.value = document.querySelector('audio')
+  audioRef.value.muted = true
   if (audioRef.value) {
     audioRef.value.addEventListener('play', () => {
       isPlaying.value = true
@@ -298,6 +319,7 @@ const connectWebSocket = () => {
   }
 
   socket.value.onmessage = (event) => {
+    console.log('이벤트', event)
     if (typeof event.data === 'string') {
       console.log('서버 응답:', event.data)
       let d = JSON.parse(event.data)
@@ -307,12 +329,12 @@ const connectWebSocket = () => {
         content: d.content,
         timestamp: getRelativeTime(d.timestamp),
       })
-    } else if (event.data instanceof ArrayBuffer) {
+    } else if (event.data instanceof Blob) {
       console.log('바이너리일 경우! ')
-      const byteArray = new Uint8Array(event.data)
+      // const byteArray = new Uint8Array(event.data)
       try {
-        const audioBlob = new Blob([byteArray], { type: 'audio/mpeg' }) // Blob 생성
-        audioURL.value = URL.createObjectURL(audioBlob)
+        //  const audioBlob = new Blob([byteArray], { type: 'audio/mpeg' }) // Blob 생성
+        audioURL.value = URL.createObjectURL(event.data)
       } catch (error) {
         console.error('Blob 변환 중 오류 발생:', error)
       }
@@ -514,6 +536,16 @@ const base64ToBlob = (base64: string, mimeType: string = 'audio/wav'): Blob => {
 const handleStopRecording = () => {
   mediaRecorderRef.value?.stop()
   isRecording.value = false
+}
+const audioPlay = () => {
+  if (audioRef.value) {
+    //   audioRef.value.pause()
+    audioRef.value.muted = true
+    audioRef.value.play().catch((err) => {
+      console.error('Audio play failed:', err)
+    })
+    audioRef.value.muted = false
+  }
 }
 
 const toggleRecording = () => {
