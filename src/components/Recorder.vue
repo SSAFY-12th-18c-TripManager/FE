@@ -347,7 +347,7 @@ const sendVoiceWs = (formData) => {
     return;
   }
   if (socket.value && formData) {
-    socket.value.send(formData);
+    socket.value.send(JSON.stringify(formData));
   }
 };
 
