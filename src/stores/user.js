@@ -5,6 +5,8 @@ export const useUserStore = defineStore('user', () => {
   const accessToken = ref('')
   const userId = ref('')
   const userEmail = ref('')
+  const name = ref('')
+  const senderId = ref(0)
 
   function setAccessToken(value) {
     accessToken.value = value
@@ -18,5 +20,24 @@ export const useUserStore = defineStore('user', () => {
     userEmail.value = value
   }
 
-  return { accessToken, userId, userEmail, setAccessToken, setUserId, setUserEmail }
+  function setSenderId(value) {
+    senderId.value = value
+  }
+
+  function setName(value) {
+    name.value = value
+  }
+
+  return {
+    accessToken,
+    userId,
+    userEmail,
+    senderId,
+    name,
+    setAccessToken,
+    setUserId,
+    setUserEmail,
+    setSenderId,
+    setName,
+  }
 })

@@ -10,4 +10,11 @@ function sendQuestionText(text, success, fail) {
   json.post(`/api/answer`, text).then(success).catch(fail)
 }
 
-export { sendQuestionVoice, sendQuestionText }
+function getAllMessage(senderId, success, fail) {
+  json.get(`/chat/start/${senderId}`).then(success).catch(fail)
+}
+
+function closeChat(senderId, success, fail) {
+  json.get(`/chat/end/${senderId}`).then(success).catch(fail)
+}
+export { sendQuestionVoice, sendQuestionText, getAllMessage, closeChat }

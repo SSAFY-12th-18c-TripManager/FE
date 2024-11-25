@@ -1,14 +1,24 @@
 <template>
   <div class="item justify-center items-center text-white">
-    <!-- <v-btn @click="audioPlay" ref="startButton"> start </v-btn> -->
+
+    <div class="pa-5 flex-row d-flex">
+      <div @click="redisStart">
+        <v-icon color="color5" class="mr-4" icon="mdi-chart-box-plus-outline" size="large"></v-icon>
+      </div>
+      <div @click="renew">
+        <v-icon color="color5" icon="mdi-autorenew" size="large"></v-icon>
+      </div>
+    </div>
     <div class="d-flex flex-grow flex-column w-100 h-100">
-      <div ref="ml" v-show="msgList" class="msgBox overflow-scroll position-absolute">
-        <div v-for="msg in msgList">
+
+
+      <div ref="ml" v-show="formattedMsgList" class="msgBox overflow-scroll position-absolute">
+        <div v-for="msg in formattedMsgList">
           <div class="d-flex" :class="{ send: msg.isSender }">
             <div class="msg text-color2 font-weight-medium">{{ msg.content }}</div>
             <h5 class="text-color5 d-flex pt-2 align-end justify-end">
               <div class="mb-6">
-                {{ msg.timestamp }}
+                {{ msg.formattedTimestamp }}
               </div>
             </h5>
           </div>
@@ -22,66 +32,38 @@
           </div>
         </div>
       </div>
-      <div
-        style="margin-top: 25rem"
-        class="position-relative justify-center d-flex align-center flex-column items-center flex-grow-1"
-      >
-        <div class="position-relative micBox">
-          <div id="container" v-if="isRecording && !isPlaying">
-            <div id="gradient1"></div>
-            <div id="gradient2"></div>
+      <div style="margin-top: auto"
+        class="mb-10 pb-3 position-relative justify-center d-flex align-center flex-row items-center text-color3">
+        <div>
+          <div class="position-relative micBox">
+            <div id="container" v-if="isRecording && !isPlaying">
+              <div id="gradient1"></div>
+              <div id="gradient2"></div>
+            </div>
+            <button @click="toggleRecording" class="position-absolute d-flex items-center justify-center recordIcon"
+              style="top: 0rem; left: 0rem; z-index: 11" :class="isRecording ? 'isRecording' : 'isNotRecording'">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width: 50px; height: 50px" viewBox="0 0 24 24"
+                fill="currentColor">
+                <path class="s0"
+                  d="m12 14q0.6 0 1.1-0.2 0.6-0.3 1-0.7 0.4-0.4 0.7-1 0.2-0.5 0.2-1.1v-5c0-0.8-0.3-1.6-0.9-2.1-0.5-0.6-1.3-0.9-2.1-0.9-0.8 0-1.6 0.3-2.1 0.9-0.6 0.5-0.9 1.3-0.9 2.1v5q0 0.6 0.2 1.1 0.3 0.6 0.7 1 0.4 0.4 1 0.7 0.5 0.2 1.1 0.2z" />
+                <path class="s0"
+                  d="m19 11c0 0-0.1-0.5-0.3-0.7q-0.3-0.3-0.7-0.3-0.4 0-0.7 0.3-0.3 0.3-0.3 0.7c0 1.3-0.5 2.6-1.5 3.5-0.9 1-2.2 1.5-3.5 1.5-1.3 0-2.6-0.5-3.5-1.5-1-0.9-1.5-2.2-1.5-3.5q0-0.4-0.3-0.7-0.3-0.3-0.7-0.3-0.4 0-0.7 0.3-0.3 0.3-0.3 0.7c0.1 1.6 0.7 3.1 1.8 4.3 1.1 1.2 2.5 2 4.1 2.2 1.6 0.3 3.2 0 4.6-0.8 1.4-0.8 2.5-2.1 3-3.6 0.1 0 0.5-2.1 0.5-2.1zm-7 7q-0.2 0-0.4 0.1-0.2 0.1-0.3 0.2-0.1 0.1-0.2 0.3-0.1 0.2-0.1 0.4v2q0 0.4 0.3 0.7 0.3 0.3 0.7 0.3 0.4 0 0.7-0.3 0.3-0.3 0.3-0.7v-2q0-0.2-0.1-0.4-0.1-0.2-0.2-0.3-0.1-0.1-0.3-0.2-0.2-0.1-0.4-0.1zm7-7zm-1 4" />
+              </svg>
+            </button>
           </div>
-          <button
-            @click="toggleRecording"
-            class="position-absolute d-flex items-center justify-center recordIcon text-color5"
-            style="top: 0rem; left: 0rem; z-index: 11"
-            :class="isRecording ? 'isRecording' : 'isNotRecording'"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              style="width: 50px; height: 50px"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path
-                class="s0"
-                d="m12 14q0.6 0 1.1-0.2 0.6-0.3 1-0.7 0.4-0.4 0.7-1 0.2-0.5 0.2-1.1v-5c0-0.8-0.3-1.6-0.9-2.1-0.5-0.6-1.3-0.9-2.1-0.9-0.8 0-1.6 0.3-2.1 0.9-0.6 0.5-0.9 1.3-0.9 2.1v5q0 0.6 0.2 1.1 0.3 0.6 0.7 1 0.4 0.4 1 0.7 0.5 0.2 1.1 0.2z"
-              />
-              <path
-                class="s0"
-                d="m19 11c0 0-0.1-0.5-0.3-0.7q-0.3-0.3-0.7-0.3-0.4 0-0.7 0.3-0.3 0.3-0.3 0.7c0 1.3-0.5 2.6-1.5 3.5-0.9 1-2.2 1.5-3.5 1.5-1.3 0-2.6-0.5-3.5-1.5-1-0.9-1.5-2.2-1.5-3.5q0-0.4-0.3-0.7-0.3-0.3-0.7-0.3-0.4 0-0.7 0.3-0.3 0.3-0.3 0.7c0.1 1.6 0.7 3.1 1.8 4.3 1.1 1.2 2.5 2 4.1 2.2 1.6 0.3 3.2 0 4.6-0.8 1.4-0.8 2.5-2.1 3-3.6 0.1 0 0.5-2.1 0.5-2.1zm-7 7q-0.2 0-0.4 0.1-0.2 0.1-0.3 0.2-0.1 0.1-0.2 0.3-0.1 0.2-0.1 0.4v2q0 0.4 0.3 0.7 0.3 0.3 0.7 0.3 0.4 0 0.7-0.3 0.3-0.3 0.3-0.7v-2q0-0.2-0.1-0.4-0.1-0.2-0.2-0.3-0.1-0.1-0.3-0.2-0.2-0.1-0.4-0.1zm7-7zm-1 4"
-              />
-            </svg>
-          </button>
+          <p v-show="!permissionGranted" class="mt-4" style="color: white">
+            마이크 권한이 필요합니다.
+          </p>
         </div>
-        <p v-show="!permissionGranted" class="mt-4" style="color: white">
-          마이크 권한이 필요합니다.
-        </p>
-        {{ isRecording }}
-        <div
-          v-show="!isRecording"
-          class="d-flex justify-center"
-          @click="stopAudio"
-          style="z-index: 30"
-        >
-          <h2 v-if="!isRecording" class="position-absolute mt-8">■</h2>
-          <av-circle
-            class="position-absolute"
-            :outline-width="0"
-            :progress-width="2"
-            outline-color="hotpink"
-            bar-color="hotpink"
-            progress-color="hotpink"
-            :outline-meter-space="5"
-            :playtime="false"
-            playtime-color="transparent"
-            :src="audioURL"
-            :audio-controls="false"
-            :muted="true"
-          >
+        <div v-show="!isRecording" class="d-flex justify-center" @click="stopAudio" style="z-index: 30">
+          <h2 v-if="!isRecording && audioURL" class="position-absolute mt-8">■</h2>
+          <av-circle class="position-absolute" :outline-width="0" :progress-width="2" outline-color="skyblue"
+            bar-color="skyblue" progress-color="skyblue" :outline-meter-space="5" :playtime="false"
+            playtime-color="transparent" :src="audioURL" :audio-controls="false" :muted="true">
             브라우저가 오디오를 지원하지 않습니다.
           </av-circle>
         </div>
+
       </div>
     </div>
   </div>
@@ -89,12 +71,14 @@
 
 <script lang="ts" setup>
 import { useUserStore } from '@/stores/user'
+import { useMsgStore } from '@/stores/msg'
 import { storeToRefs } from 'pinia'
+const msgStore = useMsgStore()
 const userStore = useUserStore()
-const { userId } = storeToRefs(userStore)
+const { senderId } = storeToRefs(userStore)
+const { setMsgList, pushMsgList } = msgStore;
 import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
-import { sendQuestionVoice, sendQuestionText } from '@/api/record.js'
-import { Client } from '@stomp/stompjs'
+import { sendQuestionVoice, sendQuestionText, getAllMessage, closeChat } from '@/api/record.js'
 interface Msg {
   content: string
   senderId: number
@@ -103,7 +87,40 @@ interface Msg {
   voice: Blob
 }
 
-const firstStart = ref(false)
+const renew = () => {
+
+
+}
+// 타임스탬프를 형식화하는 함수
+const formatTimestamp = (timestamp) => {
+
+  let date;
+
+  // timestamp가 배열인 경우 처리 (형식: [year, month, day, hour, minute, second, nanosecond])
+  if (Array.isArray(timestamp) && timestamp.length === 7) {
+    const [year, month, day, hour, minute, second] = timestamp; // 나노초는 무시
+    // JS의 Date 객체에서 month는 0부터 시작하므로 -1 해줌
+    date = new Date(year, month - 1, day, hour, minute, second);
+  } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
+    // timestamp가 문자열 또는 숫자인 경우 Date 객체로 변환
+    date = new Date(timestamp);
+  } else {
+    // 그 외의 경우 처리: 유효하지 않은 timestamp는 현재 시간으로 초기화
+    date = new Date();
+  }
+  const now = new Date();
+  const minutesAgo = Math.floor((now - date) / 60000);
+  if (minutesAgo === 0) {
+    return "방금 전";
+  } else if (minutesAgo < 60) {
+    return `${minutesAgo}분 전`;
+  } else {
+    const hoursAgo = Math.floor(minutesAgo / 60);
+    return `${hoursAgo}시간 전`;
+  }
+};
+
+const { msgList } = storeToRefs(msgStore)
 const isPlaying = ref(false)
 const audioRef = ref<HTMLAudioElement | null>(null)
 const audioContext = ref<AudioContext | null>(null)
@@ -118,25 +135,25 @@ const permissionGranted = ref(false)
 const stream = ref<MediaStream | null>(null)
 const mediaRecorderRef = ref<MediaRecorder | null>(null)
 const audioChunks = ref<Blob[]>([])
-const msgList = ref<Msg[]>([])
 const socket = ref<WebSocket | null>(null)
-const senderId = ref<number>(3)
 const ml = ref<HTMLElement[]>([]) // ref 배열 선언
 
-const client = ref<Client | null>(null)
 const pps = () => {
-  msgList.value.push({
-    isSender: true,
-    content: '음, 오늘 날씨도 좋아서 혼자 여행하고 싶은데 어딜 가는게 좋을까? ' + Math.random(),
-    timestamp: getRelativeTime('2024-11-22T15:35:43'),
-  })
+  pushMsgList(
+    {
+      isSender: true,
+      content: '음, 오늘 날씨도 좋아서 혼자 여행하고 싶은데 어딜 가는게 좋을까?fdsfjdslkfejwklfndfgvkljsdenrhfgiu2pejwnrfmroieughwekupprghbn4iuejfthvbrgekufgewhrbgiuvkerghbrfuiewsfhqwau8oisefhwsfeo8ufdbw ' + Math.random(),
+      timestamp: '2024-11-22T15:35:43',
+    }
+
+  )
+  // msgList.value.push()
 }
 
 function getRelativeTime(dateString) {
   const now = new Date()
   const past = new Date(dateString)
   const diff = now - past // 차이를 밀리초로 계산
-
   const seconds = Math.floor(diff / 1000)
   const minutes = Math.floor(seconds / 60)
   const hours = Math.floor(minutes / 60)
@@ -165,21 +182,13 @@ const scrollToBottom = () => {
 const listlength = computed(() => {
   return msgList.value.length
 })
-const startButton = ref()
 
 watch(audioURL, (newValue) => {
   if (newValue && audioRef.value) {
     audioRef.value.pause()
-    // 로딩 상태 확인 후 재생
     audioRef.value.oncanplay = () => {
       audioPlay()
     }
-
-    //startButton.value.$el.click()
-    // audioRef.value.src = newValue; // 새로운 URL 설정
-    //   audioRef.value.play().catch((err) => {
-    //     console.error('Audio play failed:', err)
-    //   }) // 재생 시도
   }
 })
 
@@ -191,7 +200,18 @@ watch(listlength, async () => {
 const stopAudio = () => {
   audioRef.value?.pause()
 }
+let intervalId;
+const updateTick = ref(0);
+const formattedMsgList = computed(() => {
+  return msgList.value.map(msg => ({
+    ...msg,
+    formattedTimestamp: formatTimestamp(msg.timestamp)
+  }));
+});
+
+
 onUnmounted(() => {
+  clearInterval(intervalId);
   if (audioRef.value) {
     // 이벤트 리스너 제거
     audioRef.value.removeEventListener('play', () => {
@@ -205,11 +225,17 @@ onUnmounted(() => {
   cancelAnimationFrame(animationFrameId)
   audioContext.value?.close()
   socket.value?.close()
+
+  closeChat(senderId.value, (data) => { console.log(data) }, (error) => { console.log(error) })
+
 })
 
-// import SockJS from 'sockjs-client';
 const answer = ref(null)
 onMounted(() => {
+
+  intervalId = setInterval(() => {
+    updateTick.value++; // 이 변수의 변화로 인해 computed 속성이 재계산됨
+  }, 60000); // 60,000ms = 1분
   /*client.value = new Client({
     webSocketFactory: () => new SockJS('https://localhost:80/tm/ws'), // SockJS 설정
     debug: function (str) {
@@ -258,6 +284,16 @@ onMounted(() => {
 
   requestPermission()
 
+  getAllMessage(
+    senderId.value,
+    ({ data }) => {
+      console.log(data)
+      setMsgList(data);
+    },
+    (error) => {
+      console.log(error)
+    },
+  )
   // return () => {
   //   socket.value?.close();
   // };
@@ -293,10 +329,10 @@ const startSpeechRecognition = () => {
     if (recognizedText.value == '') return
     isRecording.value = false
 
-    msgList.value.push({
+    pushMsgList({
       isSender: true,
       content: recognizedText.value,
-      timestamp: getRelativeTime(Date.now()),
+      timestamp: Date.now(),
     })
 
     sendVoiceWs({
@@ -311,8 +347,9 @@ const startSpeechRecognition = () => {
   recognition.start()
 }
 
+
 const connectWebSocket = () => {
-  socket.value = new WebSocket('wss://localhost:8080/ws')
+  socket.value = new WebSocket('wss://localhost:8080/ws/topic/3')
   socket.value.onopen = () => {
     console.log('WebSocket 연결됨')
     // statusMessage.value = 'WebSocket 연결 완료. 녹음 준비됨.';
@@ -327,7 +364,7 @@ const connectWebSocket = () => {
       msgList.value.push({
         isSender: false,
         content: d.content,
-        timestamp: getRelativeTime(d.timestamp),
+        timestamp: d.timestamp,
       })
     } else if (event.data instanceof Blob) {
       console.log('바이너리일 경우! ')
@@ -487,7 +524,7 @@ const sendText = (response) => {
     response,
     ({ data }) => {
       console.log('sendQuestionText 성공', data)
-      msgList.value.push({
+      pushMsgList({
         senderId: data.senderId,
         isSender: data.isSender,
         content: data?.content,
@@ -607,13 +644,37 @@ const adjustAnimationSpeed = () => {
     animationStartTime.value = Date.now()
   }
 }
+
+const redisStart = () => {
+  getAllMessage(
+    senderId.value,
+    (data) => {
+      console.log(data)
+    },
+    (error) => {
+      console.log(error)
+    },
+  )
+}
+
+const redisEnd = () => {
+  closeChat(
+    senderId.value,
+    (data) => {
+      console.log(data)
+    },
+    (error) => {
+      console.log(error)
+    },
+  )
+}
 </script>
 
 <style>
 .msgBox {
   width: 100vw;
   max-height: 70vh;
-  height: 55vh;
+  height: 70vh;
 
   mask-image: linear-gradient(rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.5) 5%, rgb(73, 148, 144) 12%);
   mask-repeat: no-repeat;
@@ -655,6 +716,7 @@ const adjustAnimationSpeed = () => {
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 1;
@@ -678,9 +740,10 @@ const adjustAnimationSpeed = () => {
 }
 
 .item {
-  margin-top: 2rem;
+  margin-top: 0rem;
   position: relative;
-  height: calc(100vh - 10rem);
+  /* height: 100vh; */
+  height: calc(100vh - 3.5rem);
   width: 100vw;
 }
 
@@ -704,14 +767,12 @@ i {
 }
 
 #gradient1 {
-  background: linear-gradient(
-    70deg,
-    #15222a 0%,
-    rgb(64, 101, 149) 25%,
-    #15222a 50%,
-    rgb(64, 101, 149) 75%,
-    #15222a 100%
-  );
+  background: linear-gradient(70deg,
+      #15222a 0%,
+      rgb(64, 101, 149) 25%,
+      #15222a 50%,
+      rgb(64, 101, 149) 75%,
+      #15222a 100%);
   z-index: 0;
   animation: Scroll 4s linear infinite;
   background-size: 300% 200%;
@@ -752,12 +813,10 @@ div {
   height: 9rem;
   width: 9rem;
   display: grid;
-  mask-image: radial-gradient(
-    circle,
-    rgb(73, 148, 144) 50%,
-    rgba(0, 0, 0, 0.5) 55%,
-    rgba(0, 0, 0, 0) 70%
-  );
+  mask-image: radial-gradient(circle,
+      rgb(73, 148, 144) 50%,
+      rgba(0, 0, 0, 0.5) 55%,
+      rgba(0, 0, 0, 0) 70%);
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: cover;

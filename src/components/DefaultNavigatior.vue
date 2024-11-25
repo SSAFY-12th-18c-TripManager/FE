@@ -1,7 +1,7 @@
 <template>
   <footer>
     <div class="d-flex justify-space-around pt-4" style="height:5rem;">
-      <router-link :to="{ name: 'history' }">
+      <router-link :to="{ name: 'history-list' }">
         <v-icon color="color4" icon="mdi-history" size="large"></v-icon>
       </router-link>
 

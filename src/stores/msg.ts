@@ -47,12 +47,14 @@ ai 텍스트를 전달받으면, 이걸 피니아에 저장을 함
 
 
 */
-export const useCounterStore = defineStore('counter', () => {
-  const count = ref(0)
-  const doubleCount = computed(() => count.value * 2)
-  function increment() {
-    count.value++
+export const useMsgStore = defineStore('msg', () => {
+  const msgList = ref([])
+  function setMsgList(value) {
+    msgList.value = value
+  }
+  function pushMsgList(value) {
+    msgList.value.push(value)
   }
 
-  return { count, doubleCount, increment }
+  return { msgList, setMsgList, pushMsgList }
 })

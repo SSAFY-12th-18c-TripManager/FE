@@ -7,12 +7,13 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { userLogin } from '@/api/user.js'
 
 import { useUserStore } from '@/stores/user'
 import { storeToRefs } from "pinia";
 const userStore = useUserStore();
 const { userId, userEmail } = storeToRefs(userStore);
-const { setUserId, setUserEmail } = userStore;
+const { setUserId, setUserEmail, setName, setSenderId } = userStore;
 import { onMounted } from 'vue';
 import { getNaverEmail } from '@/api/auth.ts'
 
@@ -28,13 +29,21 @@ const processCallback = () => {
   } else {
     getNaverEmail(accessToken, ({ response
     }) => {
-      setUserId(response.id)
-      setUserEmail(response.email)
+      userLogin({
+        naverId: response.id,
+        email: response.email
+      }, ({ data }) => {
+        setUserId(data.naverId)
+        setUserEmail(data.email)
+        setName(data.name)
+        setSenderId(data.senderId)
+      }, (error) => {
+        console.log(error)
+      })
       router.push({ name: 'recorder' });
     }, (error) => { console.error(error) })
   }
 };
-
 
 onMounted(() => {
   processCallback();
