@@ -11,7 +11,7 @@ function sendQuestionText(text, success, fail) {
 }
 
 function getAllMessage(senderId, success, fail) {
-  json.get(`/chat/start/${senderId}`).then(success).catch(fail)
+  json.get(`/chat/start/sender/${senderId}`).then(success).catch(fail)
 }
 
 function closeChat(senderId, success, fail) {

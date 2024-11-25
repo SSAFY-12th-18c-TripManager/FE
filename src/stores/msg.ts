@@ -48,13 +48,36 @@ ai 텍스트를 전달받으면, 이걸 피니아에 저장을 함
 
 */
 export const useMsgStore = defineStore('msg', () => {
-  const msgList = ref([])
-  function setMsgList(value) {
+  const msgList = ref<Msg[]>([])
+  interface Msg {
+    content: string
+    senderId: number
+    isSender: boolean
+    timestamp: string
+    voice: Blob
+  }
+
+  interface Room {
+    roomId: number
+    summary: string
+    memberId: number
+    timestamp: Date
+    report: string
+  }
+
+  function setMsgList(value: Msg[]) {
     msgList.value = value
   }
-  function pushMsgList(value) {
+
+  function pushMsgList(value: Msg) {
     msgList.value.push(value)
   }
 
-  return { msgList, setMsgList, pushMsgList }
+  const roomList = ref<Room[]>([])
+
+  function setRoomList(value: Room[]) {
+    roomList.value = value
+  }
+
+  return { msgList, setMsgList, pushMsgList, roomList, setRoomList }
 })

@@ -1,6 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import DefaultLayout from '../layout/DefaultLayout.vue'
 import SimpleLayout from '../layout/SimpleLayout.vue'
+import MainView from '../views/MainView.vue'
+import RecorderView from '../views/RecorderView.vue'
+import RoomListView from '../views/RoomListView.vue'
+import RoomList from '../components/RoomList.vue'
+import RoomDetail from '../components/RoomDetail.vue'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -10,7 +16,7 @@ const router = createRouter({
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import('../views/MainView.vue'),
+      component: MainView,
       meta: { layout: SimpleLayout },
     },
     {
@@ -19,26 +25,26 @@ const router = createRouter({
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import('../views/RecorderView.vue'),
+      component: RecorderView,
       meta: { layout: DefaultLayout },
     },
     {
-      path: '/history',
-      name: 'history',
+      path: '/room',
+      name: 'room',
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import('../views/HistoryView.vue'),
+      component: RoomListView,
       children: [
         {
           path: 'list',
-          name: 'history-list',
-          component: () => import('../components/HistoryList.vue'),
+          name: 'room-list',
+          component: RoomList,
         },
         {
-          path: 'detail',
-          name: 'history-detail',
-          component: () => import('../components/HistoryDetail.vue'),
+          path: 'detail/:roomId',
+          name: 'room-detail',
+          component: RoomDetail,
         },
       ],
     },

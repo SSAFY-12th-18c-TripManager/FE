@@ -7,7 +7,4 @@
     </div>
   </v-layout>
 </template>
-<script setup>
-import DefaultHeader from '@/components/DefaultHeader.vue'
-import DefaultNavigatior from '@/components/DefaultNavigatior.vue'
-</script>
+<script setup></script>
