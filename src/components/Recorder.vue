@@ -1,6 +1,6 @@
 <template>
   <div class="item justify-center items-center text-white">
-    <div class="pa-5 flex-row d-flex">
+    <div class="pa-3 flex-row d-flex">
       <div @click="redisStart">
         <v-icon color="color5" class="mr-4" icon="mdi-chart-box-plus-outline" size="large"></v-icon>
       </div>
@@ -9,8 +9,6 @@
       </div>
     </div>
     <div class="d-flex flex-grow flex-column w-100 h-100">
-
-
       <div ref="ml" v-show="formattedMsgList" class="msgBox overflow-scroll position-absolute">
         <div v-for="msg in formattedMsgList">
           <div class="d-flex" :class="{ send: msg.isSender }">

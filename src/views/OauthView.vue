@@ -1,6 +1,7 @@
 <template>
-  <div>로그인 처리 중...</div>
-  <div v-if="userId">{{ userId }} 님 안녕? {{ userEmail }}로 로그인한다?</div>
+  <div class="d-flex oauth justify-center">
+    <h3 class="text-color3 align-center ">로그인 처리 중...</h3>
+  </div>
 </template>
 
 <script setup>
@@ -59,3 +60,8 @@ onMounted(() => {
   processCallback()
 })
 </script>
+<style scoped>
+.oauth {
+  width: 100vw;
+}
+</style>
