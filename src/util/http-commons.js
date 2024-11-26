@@ -1,5 +1,5 @@
 import axios from 'axios'
-const { VITE_VUE_API_URL } = import.meta.env
+const { VITE_VUE_API_URL, VITE_TMAP_SERVICE_KEY } = import.meta.env
 
 function localAxios() {
   const instance = axios.create({
@@ -13,7 +13,7 @@ function localAxios() {
 
 function audioAxios() {
   const instance = axios.create({
-    baseURL: VITE_VUE_API_URL,
+    baseURL: '/tmap-api',
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -49,4 +49,16 @@ function naverAxios(accessToken) {
     },
   })
 }
-export { localAxios, exAxios, audioAxios, jsonAxios, naverAxios }
+
+function tMapAxios() {
+  console.log('VITE_TMAP_SERVICE_KEY, ', VITE_TMAP_SERVICE_KEY)
+  return axios.create({
+    baseURL: '/tmap-api',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json',
+      appKey: VITE_TMAP_SERVICE_KEY,
+    },
+  })
+}
+export { localAxios, exAxios, audioAxios, jsonAxios, naverAxios, tMapAxios }

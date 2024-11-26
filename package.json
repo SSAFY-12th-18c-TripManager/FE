@@ -20,6 +20,7 @@
     "@mdi/font": "^7.4.47",
     "@mdi/js": "^7.4.47",
     "@stomp/stompjs": "^7.0.0",
+    "geojson": "^0.5.0",
     "pinia": "^2.2.6",
     "sockjs-client": "^1.6.1",
     "stomp": "^0.1.1",

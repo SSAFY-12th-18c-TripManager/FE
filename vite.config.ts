@@ -20,6 +20,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/naver-api/, ''),
       },
+
+      '/tmap-api': {
+        target: 'https://apis.openapi.sk.com/',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/tmap-api/, ''),
+      },
     },
   },
   plugins: [vue(), vueJsx(), vueDevTools(), nightwatchPlugin()],
