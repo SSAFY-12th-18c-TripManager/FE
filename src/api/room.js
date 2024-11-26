@@ -5,7 +5,11 @@ function getRoomList(senderId, success, fail) {
   json.get(`/chat/rooms/sender/${senderId}`).then(success).catch(fail)
 }
 
-function getRoom(roomId, success, fail) {
-  json.get(`/room/${roomId}`).then(success).catch(fail)
+function getRoutes(roomId, success, fail) {
+  json.get(`/load/room/${roomId}`).then(success).catch(fail)
 }
-export { getRoomList, getRoom }
+
+function getSummary(roomId, success, fail) {
+  json.get(`/chat/summary/room/${roomId}`).then(success).catch(fail)
+}
+export { getRoomList, getSummary, getRoutes }

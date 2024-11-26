@@ -1,13 +1,15 @@
 <template>
   <main class="detailMain h-100 text-white">
-    맵
     <v-card color="color5" class="vcard">
       <div ref="tmap">
       </div>
     </v-card>
+
   </main>
 </template>
 <script setup lang="ts">
+
+import { getRoutes } from '@/api/room.js'
 
 const sample = {
   "summary": "### OOO 여행 일정표\n\n**<여행 정보>**\n- 여행 이름: 역삼 탐험\n- 여행 나라: 대한민국\n- 여행 지역: 서울특별시 강남구 역삼동\n- 여행 날짜: 2024년 11월 26일\n- 참여 인원: 2명\n- 예산: 최소 비용\n\n---\n\n### 일정표\n| 시간           | 장소                     | 활동/세부내용               | 비고          |\n|----------------|--------------------------|----------------------------|---------------|\n| 09:00-10:00    | 역삼역 주변 카페         | 도착 및 간단한 휴식        | 커피빈 추천   |\n| 10:00-12:00    | 삼성 딜라이트 체험관    | 최신 IT 기술 체험          | 무료 입장     |\n| 12:00-14:00    | 조수사                  | 신선한 초밥과 회로 점심     | 예약 권장     |\n| 14:00-16:00    | 역삼문화공원            | 산책 및 사진 촬영          | 날씨 확인 필요 |\n| 16:00-18:00    | 하나둘 갤러리카페       | 무료 전시 관람 및 휴식     | 최신 전시 확인 |\n| 18:00-20:00    | 이필녀국밥             | 뜨끈한 순대국밥으로 저녁    | 김치 맛집     |\n| 20:00 이후     | 역삼역                  | 귀가                      | 교통편 확인   |\n\n---\n\n### 추가 메모\n- 필요한 준비물: 간단한 가방, 물병, 편한 신발\n- 사전 예약 사항: 점심 예약(조수사), 확인 전화\n- 특별히 주의할 점: 날씨 확인, 체험 시간 맞추기\n\n---\n\n### 비용 정리\n| 항목         | 금액      | 비고              |\n|--------------|-----------|-------------------|\n| 교통비        | 최소 비용 |                   |\n| 식사비        | 최소 비용 | 점심/저녁 포함   |\n| 체험/입장료   | 무료      | 모든 체험 무료    |\n| 기타 비용     |           |                   |\n\n---\n\n### 여행 후 기록\n- 가장 좋았던 점:  \n- 아쉬웠던 점:  \n- 다음에 가고 싶은 곳:  \n",
@@ -58,7 +60,6 @@ const sample = {
   ]
 }
 import { useRoute } from 'vue-router'
-import { getRoom } from '@/api/room.js'
 import { ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
 
 
@@ -881,16 +882,19 @@ const roomId = ref<string>('')
 const room = ref<Room>()
 if (typeof route?.params?.roomId === 'string') {
   roomId.value = route.params.roomId
-  getRoom(
-    roomId.value,
-    ({ data }) => {
-      room.value = data
-      console.log(data)
-    },
-    (error) => {
-      console.log(error)
-    },
-  )
+  /*
+    getRoom(
+      roomId.value,
+      ({ data }) => {
+        room.value = data
+        console.log(data)
+      },
+      (error) => {
+        console.log(error)
+      },
+    )
+  */
+
 } else {
   roomId.value = '' // fallback 값 설정
 }
@@ -907,9 +911,9 @@ const { Tmapv2 } = window
 let intervalId = 0
 const updateTick = ref(0)
 
-const markerList = sample.locations.map((item, index) => ({
+const markerList = computed(() => locations.value.map((item, index) => ({
   ...item, key: index
-}))
+})))
 
 
 
@@ -946,23 +950,28 @@ const formatTimestamp = (timestamp) => {
 
 const tmap = ref(null);
 const map = ref(null);
+const locations = ref(null)
 onMounted(() => {
-  intervalId = setInterval(() => {
-    updateTick.value++ // 1분마다 변경하여 computed 재계산 유도
-  }, 60000)
+  getRoutes(
+    roomId.value,
+    ({ data }) => {
+      locations.value = data;
+      initTmap();
+    },
+    (error) => {
+      console.log(error)
+    },
+  )
 
-  initTmap();
 })
 
 
 const initTmap = () => {
-  // map 생성
-  // Tmapv3.Map을 이용하여, 지도가 들어갈 div, 넓이, 높이를 설정합니다.
   map.value = new Tmapv3.Map(tmap.value, {
-    center: new Tmapv3.LatLng(markerList[0].lat, markerList[0].lng),
+    center: new Tmapv3.LatLng(markerList.value[0].lat, markerList.value[0].lng),
     width: "100%",	// 지도의 넓이
     height: "400px",	// 지도의 높이
-    zoom: 13	// 지도 줌레벨
+    zoom: 15	// 지도 줌레벨
   });
 
   map.value.on("ConfigLoad", function () {
@@ -972,20 +981,41 @@ const initTmap = () => {
 
 
 const addPolyline = () => {
-  console.log(markerList.map(item => {
-    return new Tmapv3.LatLng(item.lat, item.lng)
-  }));
+  markerList.value.forEach(item => {
+    console.log(item)
 
+    let label = "<span style='background-color: #46414E;color:white'>" + item.locationSub + "</span>";
+    let marker = new Tmapv3.Marker({
+      position: new Tmapv3.LatLng(item.lat, item.lng),
+      strokeWeight: 6,
+      direction: true,
+      map: map.value, // 지도 객체
+      title: item.locationTitle,
+      label: label,
+    })
+
+
+    // InfoWindow 생성
+    let infoWindow = new Tmapv3.InfoWindow({
+      position: new Tmapv3.LatLng(item.lat, item.lng), // 마커 위치에 맞추기
+      content: `<span style='background-color: #0390e8;  color: white; padding: 5px; border-radius: 5px;'>${item.locationSub}</span>`,
+      background: true, // 기본 스타일 사용
+      map: map.value,
+    });
+
+
+  });
 
   var polyline = new Tmapv3.Polyline({
-    path: markerList.map(item => {
+    path: markerList.value.map(item => {
       return new Tmapv3.LatLng(item.lat, item.lng)
     }),
-    strokeColor: "#dd00dd",
+    strokeColor: "#48b4a5",
     strokeWeight: 6,
     direction: true,
     map: map.value // 지도 객체
   });
+
 }
 onBeforeUnmount(() => {
   clearInterval(intervalId)
@@ -993,6 +1023,26 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
+.vsm-marker {
+  /* opacity: 0.85; */
+  background-color: transparent !important;
+  border: none !important;
+
+  span {
+    opacity: 1;
+  }
+
+  div:nth-child(2) {
+    border: 0px solid red !important;
+    /* display: none; */
+  }
+
+  div:nth-child(3) {
+    border: 1px solid red !important;
+    /* display: none; */
+  }
+}
+
 .history {
   /* background: rgb(var(--v-theme-color2)); */
   /* background: linear-gradient(rgb(var(--v-theme-color2))0%, rgb(var(--v-theme-color2)) 2%, rgb(var(--v-theme-color3)) 15%, rgb(var(--v-theme-color4))60%, rgb(var(--v-theme-color5))); */

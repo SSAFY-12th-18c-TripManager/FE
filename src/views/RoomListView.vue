@@ -17,7 +17,6 @@ const { senderId } = storeToRefs(userStore)
 const { setRoomList } = msgStore
 import { onMounted } from 'vue'
 onMounted(() => {
-  console.log('반복재생?')
   getRoomList(
     senderId.value,
     ({ data }) => {

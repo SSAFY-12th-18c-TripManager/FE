@@ -1,9 +1,9 @@
 <template>
   <main class="report h-100 text-white">
     <v-card color="color5" class="vcard">
-      <v-card-title> {{ formattedRoom?.summary }} </v-card-title>
+      <v-card-title class="font-weight-medium"> {{ formattedRoom?.summary }} </v-card-title>
       <v-card-text>
-        <div v-html="sample.summaryHTML">
+        <div v-html="summary">
         </div>
         <div class="result" v-if="formattedRoom?.result">
           <div v-html="formattedRoom.result"></div>
@@ -13,7 +13,10 @@
   </main>
 </template>
 <script setup lang="ts">
-
+import { useMsgStore } from '@/stores/msg'
+import { storeToRefs } from 'pinia'
+const msgStore = useMsgStore();
+const { room, roomId, summary, roomList } = storeToRefs(msgStore)
 const sample = {
   "summary": "### OOO 여행 일정표\n\n**<여행 정보>**\n- 여행 이름: 역삼 탐험\n- 여행 나라: 대한민국\n- 여행 지역: 서울특별시 강남구 역삼동\n- 여행 날짜: 2024년 11월 26일\n- 참여 인원: 2명\n- 예산: 최소 비용\n\n---\n\n### 일정표\n| 시간           | 장소                     | 활동/세부내용               | 비고          |\n|----------------|--------------------------|----------------------------|---------------|\n| 09:00-10:00    | 역삼역 주변 카페         | 도착 및 간단한 휴식        | 커피빈 추천   |\n| 10:00-12:00    | 삼성 딜라이트 체험관    | 최신 IT 기술 체험          | 무료 입장     |\n| 12:00-14:00    | 조수사                  | 신선한 초밥과 회로 점심     | 예약 권장     |\n| 14:00-16:00    | 역삼문화공원            | 산책 및 사진 촬영          | 날씨 확인 필요 |\n| 16:00-18:00    | 하나둘 갤러리카페       | 무료 전시 관람 및 휴식     | 최신 전시 확인 |\n| 18:00-20:00    | 이필녀국밥             | 뜨끈한 순대국밥으로 저녁    | 김치 맛집     |\n| 20:00 이후     | 역삼역                  | 귀가                      | 교통편 확인   |\n\n---\n\n### 추가 메모\n- 필요한 준비물: 간단한 가방, 물병, 편한 신발\n- 사전 예약 사항: 점심 예약(조수사), 확인 전화\n- 특별히 주의할 점: 날씨 확인, 체험 시간 맞추기\n\n---\n\n### 비용 정리\n| 항목         | 금액      | 비고              |\n|--------------|-----------|-------------------|\n| 교통비        | 최소 비용 |                   |\n| 식사비        | 최소 비용 | 점심/저녁 포함   |\n| 체험/입장료   | 무료      | 모든 체험 무료    |\n| 기타 비용     |           |                   |\n\n---\n\n### 여행 후 기록\n- 가장 좋았던 점:  \n- 아쉬웠던 점:  \n- 다음에 가고 싶은 곳:  \n",
   "summaryHTML": "<h3>OOO 여행 일정표</h3>\n\n<h4>&lt;여행 정보&gt;</h4>\n<ul>\n<li>여행 이름: 역삼 탐험</li>\n<li>여행 나라: 대한민국</li>\n<li>여행 지역: 서울특별시 강남구 역삼동</li>\n<li>여행 날짜: 2024년 11월 26일</li>\n<li>참여 인원: 2명</li>\n<li>예산: 최소 비용</li>\n</ul>\n\n<hr>\n\n<h4>일정표</h4>\n<table>\n<tr><th>시간</th><th>장소</th><th>활동/세부내용</th><th>비고</th></tr>\n<tr><td>09:00-10:00</td><td>역삼역 주변 카페</td><td>도착 및 간단한 휴식</td><td>커피빈 추천</td></tr>\n<tr><td>10:00-12:00</td><td>삼성 딜라이트 체험관</td><td>최신 IT 기술 체험</td><td>무료 입장</td></tr>\n<tr><td>12:00-14:00</td><td>조수사</td><td>신선한 초밥과 회로 점심</td><td>예약 권장</td></tr>\n<tr><td>14:00-16:00</td><td>역삼문화공원</td><td>산책 및 사진 촬영</td><td>날씨 확인 필요</td></tr>\n<tr><td>16:00-18:00</td><td>하나둘 갤러리카페</td><td>무료 전시 관람 및 휴식</td><td>최신 전시 확인</td></tr>\n<tr><td>18:00-20:00</td><td>이필녀국밥</td><td>뜨끈한 순대국밥으로 저녁</td><td>김치 맛집</td></tr>\n<tr><td>20:00 이후</td><td>역삼역</td><td>귀가</td><td>교통편 확인</td></tr>\n</table>\n\n<hr>\n\n<h4>추가 메모</h4>\n<ul>\n<li>필요한 준비물: 간단한 가방, 물병, 편한 신발</li>\n<li>사전 예약 사항: 점심 예약(조수사), 확인 전화</li>\n<li>특별히 주의할 점: 날씨 확인, 체험 시간 맞추기</li>\n</ul>\n\n<hr>\n\n<h4>비용 정리</h4>\n<table>\n<tr><th>항목</th><th>금액</th><th>비고</th></tr>\n<tr><td>교통비</td><td>최소 비용</td><td></td></tr>\n<tr><td>식사비</td><td>최소 비용</td><td>점심/저녁 포함</td></tr>\n<tr><td>체험/입장료</td><td>무료</td><td>모든 체험 무료</td></tr>\n<tr><td>기타 비용</td><td></td><td></td></tr>\n</table>\n\n<hr>\n\n<h4>여행 후 기록</h4>\n<ul>\n<li>가장 좋았던 점:</li>\n<li>아쉬웠던 점:</li>\n<li>다음에 가고 싶은 곳:</li>\n</ul>",
@@ -63,10 +66,10 @@ const sample = {
   ]
 }
 import { useRoute } from 'vue-router'
-import { getRoom } from '@/api/room.js'
+import { getSummary } from '@/api/room.js'
 import { ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
 
-
+const { setSummary } = msgStore
 const sample2 = {
   "type": "FeatureCollection",
   "features": [
@@ -882,107 +885,33 @@ const sample2 = {
 
 
 const route = useRoute()
-const roomId = ref<string>('')
-const room = ref<Room>()
-if (typeof route?.params?.roomId === 'string') {
-  roomId.value = route.params.roomId
-  getRoom(
-    roomId.value,
-    ({ data }) => {
-      room.value = data
-      console.log(data)
-    },
-    (error) => {
-      console.log(error)
-    },
-  )
-} else {
-  roomId.value = '' // fallback 값 설정
-}
-
-interface Room {
-  roomId: number
-  summary: string
-  memberId: number
-  timestamp: Date
-  report: string
-}
-
-const { Tmapv2 } = window
-let intervalId = 0
-const updateTick = ref(0)
-
 const markerList = sample.locations.map((item, index) => ({
   ...item, key: index
 }))
 
 
-
 const formattedRoom = computed(() => {
+  return roomList.value.filter(item => item.roomId == roomId.value)[0]
 })
-
-// 타임스탬프를 형식화하는 함수
-const formatTimestamp = (timestamp) => {
-  let date
-
-  // timestamp가 배열인 경우 처리 (형식: [year, month, day, hour, minute, second, nanosecond])
-  if (Array.isArray(timestamp) && timestamp.length === 7) {
-    const [year, month, day, hour, minute, second] = timestamp // 나노초는 무시
-    // JS의 Date 객체에서 month는 0부터 시작하므로 -1 해줌
-    date = new Date(year, month - 1, day, hour, minute, second)
-  } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
-    // timestamp가 문자열 또는 숫자인 경우 Date 객체로 변환
-    date = new Date(timestamp)
-  } else {
-    // 그 외의 경우 처리: 유효하지 않은 timestamp는 현재 시간으로 초기화
-    date = new Date()
-  }
-  const now = new Date()
-  const minutesAgo = Math.floor((now - date) / 60000)
-  if (minutesAgo === 0) {
-    return '방금 전'
-  } else if (minutesAgo < 60) {
-    return `${minutesAgo}분 전`
-  } else {
-    const hoursAgo = Math.floor(minutesAgo / 60)
-    return `${hoursAgo}시간 전`
-  }
-}
-
 onMounted(() => {
-})
+  getSummary(
+    roomId.value,
+    ({ data }) => {
+      setSummary(data)
+      console.log("뭐하냐고지금", data)
+    },
+    (error) => {
+      console.log(error)
+    },
+  )
 
-onBeforeUnmount(() => {
-  clearInterval(intervalId)
 })
 </script>
 
 <style>
-.history {
-  /* background: rgb(var(--v-theme-color2)); */
-  /* background: linear-gradient(rgb(var(--v-theme-color2))0%, rgb(var(--v-theme-color2)) 2%, rgb(var(--v-theme-color3)) 15%, rgb(var(--v-theme-color4))60%, rgb(var(--v-theme-color5))); */
-}
+.history {}
 
-/* colors: { */
-
-/* color1: '#15222a', */
-/* color2: '#255a62', */
-/* color3: '#0390e8', */
-/* color4: '#48b4a5', */
-/* color5: '#f4f1ea', */
-.list {
-  /* width: 50%; */
-  /*
-  margin: 20px;
-  border: 15px solid;
-  border-image: linear-gradient(0deg, #ffdee9 0%, #b5fffc 100%); */
-  /* border-image-slice: 1; */
-  /* border-image: linear-gradient(black, pink); */
-  /*
-  border-image: linear-gradient(180deg, #255a62 2%, #0390e8 5%, #48b4a5 60%, #f4f1ea 100%);
-  border-image-slice: 1; */
-  /* border: 20px solid; */
-}
+.list {}
 
 .vcard {
   border: 0px solid white;
@@ -1014,7 +943,6 @@ onBeforeUnmount(() => {
   }
 
   th {
-
     color: rgb(var(--v-theme-color2));
     padding: 0.25rem;
   }

@@ -1,7 +1,7 @@
 <template>
   <div class="item justify-center items-center text-white">
     <div class="pa-3 flex-row d-flex">
-      <div @click="redisStart">
+      <div @click="summary">
         <v-icon color="color5" class="mr-4" icon="mdi-chart-box-plus-outline" size="large"></v-icon>
       </div>
       <div @click="renew">
@@ -609,7 +609,6 @@ const adjustAnimationSpeed = () => {
 
     // speed.value = volume.value === 1 ? 8 : 0.5;
     speed.value = volume.value === 1 ? 8 : Math.min(10, Math.round(8000 / volume.value) / 10) // 볼륨에 따라 속도 설정
-    console.log('이거대체몇번실행됨')
     const newProgress = progress * 100 // 배경 위치를 %로 변환
     gradientElement.style.backgroundPosition = `${newProgress}% 0%`
 
@@ -621,16 +620,18 @@ const adjustAnimationSpeed = () => {
   }
 }
 
-const redisStart = () => {
-  getAllMessage(
-    senderId.value,
-    (data) => {
-      console.log(data)
-    },
-    (error) => {
-      console.log(error)
-    },
-  )
+const summary = () => {
+  pushMsgList({
+    isSender: true,
+    content: '지금까지 내용을 요약해줘',
+    timestamp: Date.now(),
+  })
+
+  sendVoiceWs({
+    senderId: senderId.value,
+    audio: '지금까지 내용을 요약해줘',
+    history: JSON.stringify(msgList.value)
+  })
 }
 
 const redisEnd = () => {

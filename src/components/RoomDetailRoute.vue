@@ -1,13 +1,28 @@
 <template>
   <main class="detailMain h-100 text-color4">
-    <div v-for="f in features" key="f.properties">{{ f.properties.description }}</div>
+    <div v-for="f in features?.features" key="f.properties">
+      <div v-if="f.properties.pointIndex">
+        <h4 class="text-color2 border-radius-4">{{ f.properties.description == "도착" ?
+          decodeURIComponent(f.properties.name)
+          : f.properties.name }}</h4>
+        <div class="ml-3 mt-1 mb-2 pa-3 naviContent">
 
+          <h4 class="font-weight-light"> <v-btn v-if="getDescription(f.properties.turnType) != -1" variant="outlined"
+              density>
+              {{ getDescription(f.properties.turnType) }}
+            </v-btn>
+            {{ grammer(f.properties.description) }}
+          </h4>
+        </div>
+      </div>
+    </div>
     <v-card color="color5" class="vcard">
       <div ref="tmap"></div>
     </v-card>
   </main>
 </template>
 <script setup lang="ts">
+import { ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
 import { getPedestrianRoute } from '@/api/route.js'
 const options = ref({
   startX: 126.92365493654832,
@@ -25,11 +40,16 @@ const options = ref({
   sort: 'index',
 })
 
+
+const highlight = ref("");
+
 const makeRouteOption = () => {
-  let markerList = sample.locations.map((item, index) => ({
+  let markerList = locations.value.map((item, index) => ({
     ...item,
     key: index,
   }))
+  console.log("markerList", markerList);
+
 
   let first = markerList.shift()
   let last = markerList.pop()
@@ -41,6 +61,7 @@ const makeRouteOption = () => {
     passString += item.lat
     passString += '_'
   })
+
   options.value.startY = first?.lat
   options.value.startX = first?.lng
   options.value.endY = last?.lat
@@ -52,15 +73,14 @@ const makeRouteOption = () => {
 }
 
 const features = ref(null)
-const getRoute = () => {
+const getTmapRoute = () => {
   let body = makeRouteOption()
-  console.log(body, 'body')
+  console.log("body", body);
   getPedestrianRoute(
     body,
     ({ data }) => {
       console.log('성공', data.features)
       features.value = data
-
       initTmap()
     },
     (error) => {
@@ -122,8 +142,6 @@ const sample = {
   ],
 }
 import { useRoute } from 'vue-router'
-import { getRoom } from '@/api/room.js'
-import { ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
 
 const sample2 = {
   type: 'FeatureCollection',
@@ -724,6 +742,7 @@ const roomId = ref<string>('')
 const room = ref<Room>()
 if (typeof route?.params?.roomId === 'string') {
   roomId.value = route.params.roomId
+  /*
   getRoom(
     roomId.value,
     ({ data }) => {
@@ -733,7 +752,7 @@ if (typeof route?.params?.roomId === 'string') {
     (error) => {
       console.log(error)
     },
-  )
+  )*/
 } else {
   roomId.value = '' // fallback 값 설정
 }
@@ -755,55 +774,31 @@ const markerList = sample.locations.map((item, index) => ({
   key: index,
 }))
 
-const formattedRoom = computed(() => {})
-
-// 타임스탬프를 형식화하는 함수
-const formatTimestamp = (timestamp) => {
-  let date
-
-  // timestamp가 배열인 경우 처리 (형식: [year, month, day, hour, minute, second, nanosecond])
-  if (Array.isArray(timestamp) && timestamp.length === 7) {
-    const [year, month, day, hour, minute, second] = timestamp // 나노초는 무시
-    // JS의 Date 객체에서 month는 0부터 시작하므로 -1 해줌
-    date = new Date(year, month - 1, day, hour, minute, second)
-  } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
-    // timestamp가 문자열 또는 숫자인 경우 Date 객체로 변환
-    date = new Date(timestamp)
-  } else {
-    // 그 외의 경우 처리: 유효하지 않은 timestamp는 현재 시간으로 초기화
-    date = new Date()
-  }
-  const now = new Date()
-  const minutesAgo = Math.floor((now - date) / 60000)
-  if (minutesAgo === 0) {
-    return '방금 전'
-  } else if (minutesAgo < 60) {
-    return `${minutesAgo}분 전`
-  } else {
-    const hoursAgo = Math.floor(minutesAgo / 60)
-    return `${hoursAgo}시간 전`
-  }
-}
-
+const formattedRoom = computed(() => { })
+const locations = ref(null)
+import { getRoutes } from '@/api/room.js'
 const tmap = ref(null)
 const map = ref(null)
 onMounted(() => {
-  intervalId = setInterval(() => {
-    updateTick.value++ // 1분마다 변경하여 computed 재계산 유도
-  }, 60000)
-
-  getRoute()
+  getRoutes(
+    roomId.value,
+    ({ data }) => {
+      locations.value = data;
+      getTmapRoute();
+    },
+    (error) => {
+      console.log(error)
+    },
+  )
 })
 
 const initTmap = () => {
   console.log('initTmap')
-  // map 생성
-  // Tmapv3.Map을 이용하여, 지도가 들어갈 div, 넓이, 높이를 설정합니다.
   map.value = new Tmapv3.Map(tmap.value, {
-    center: new Tmapv3.LatLng(markerList[0].lat, markerList[0].lng),
+    center: new Tmapv3.LatLng(locations.value[0].lat, locations.value[0].lng),
     width: '100%', // 지도의 넓이
     height: '400px', // 지도의 높이
-    zoom: 13, // 지도 줌레벨
+    zoom: 15, // 지도 줌레벨
   })
 
   map.value.on('ConfigLoad', function () {
@@ -811,25 +806,20 @@ const initTmap = () => {
   })
 }
 
-import GeoJSON from 'geojson'
 const addPolyline = () => {
   try {
-    features.value.features.forEach((feature) => {
+    features.value.features.forEach((feature, index) => {
       const { geometry } = feature
 
       if (geometry.type === 'Point') {
         // Point 타입 처리
-        const [lng, lat] = geometry.coordinates
-        new Tmapv3.Marker({
-          position: new Tmapv3.LatLng(lat, lng),
-          map: map.value,
-        })
+
       } else if (geometry.type === 'LineString' && Array.isArray(geometry.coordinates)) {
         // LineString 타입 처리
         const lineData = geometry.coordinates.map(([lng, lat]) => new Tmapv3.LatLng(lat, lng))
         new Tmapv3.Polyline({
           path: lineData,
-          strokeColor: '#FF0000',
+          strokeColor: '#0390e8',
           strokeWeight: 3,
           map: map.value,
         })
@@ -842,29 +832,7 @@ const addPolyline = () => {
   } catch (e) {
     console.error('Error drawing features:', e)
   }
-  /*
-  try {
-    GeoJSON.drawRoute(
-      map.value,
-      features.value,
-      {
-        strokeColor: '#FF0000', // 선 색상
-        strokeWeight: 3, // 선 두께
-        fillOpacity: 0.7, // 불투명도
-      },
-      () => {
-        console.log('Route successfully drawn on the map!')
-      },
-    )
-  } catch (e) {
-    console.log('e', e)
-  }
-*/
-  console.log(
-    markerList.map((item) => {
-      return new Tmapv3.LatLng(item.lat, item.lng)
-    }),
-  )
+
   var polyline = new Tmapv3.Polyline({
     path: features.value.map((item) => {
       return new Tmapv3.LatLng(item.geometry.coordinates[0], item.geometry.coordinates[1])
@@ -875,6 +843,102 @@ const addPolyline = () => {
     map: map.value, // 지도 객체
   })
 }
+
+const descriptions = {
+  0: "휴게소",
+  1: "도곽에 의한 점",
+  2: "타일에 의한 점",
+  3: "고속도로에 의한 안내없음",
+  4: "일반도로에 의한 안내없음",
+  5: "특수한 경우 안내없음",
+  6: "Y자 오른쪽 안내없음",
+  7: "Y자 왼쪽 안내없음",
+  11: "직진",
+  12: "좌회전",
+  13: "우회전",
+  14: "U턴",
+  15: "P턴",
+  16: "8시 방향 좌회전",
+  17: "10시 방향 좌회전",
+  18: "2시 방향 우회전",
+  19: "4시 방향 우회전",
+  43: "오른쪽",
+  44: "왼쪽",
+  51: "직진 방향",
+  52: "왼쪽 차선",
+  53: "오른쪽 차선",
+  54: "1차선",
+  55: "2차선",
+  56: "3차선",
+  57: "4차선",
+  58: "5차선",
+  59: "6차선",
+  60: "7차선",
+  61: "8차선",
+  62: "9차선",
+  63: "10차선",
+  71: "첫번째 출구",
+  72: "두번째 출구",
+  73: "첫번째 오른쪽 길",
+  74: "두번째 오른쪽 길",
+  75: "첫번째 왼쪽 길",
+  76: "두번째 왼쪽 길",
+  101: "오른쪽 고속도로 입구",
+  102: "왼쪽 고속도로 입구",
+  103: "전방 고속도로 입구",
+  104: "오른쪽 고속도로 출구",
+  105: "왼쪽 고속도로 출구",
+  106: "전방 고속도로 출구",
+  111: "오른쪽 도시고속도로 입구",
+  112: "왼쪽 도시고속도로 입구",
+  113: "전방 도시고속도로 입구",
+  114: "오른쪽 도시고속도로 출구",
+  115: "왼쪽 도시고속도로 출구",
+  116: "전방 도시고속도로 출구",
+  117: "오른쪽 방향",
+  118: "왼쪽 방향",
+  119: "지하차도",
+  120: "고가도로",
+  121: "터널",
+  122: "교량",
+  123: "지하차도옆",
+  124: "고가도로옆",
+  130: "토끼굴 진입",
+  131: "1시 방향",
+  132: "2시 방향",
+  133: "3시 방향",
+  134: "4시 방향",
+  135: "5시 방향",
+  136: "6시 방향",
+  137: "7시 방향",
+  138: "8시 방향",
+  139: "9시 방향",
+  140: "10시 방향",
+  141: "11시 방향",
+  142: "12시 방향",
+  150: "졸음쉼터",
+  151: "휴게소",
+  182: "왼쪽방향 도착안내",
+  183: "오른쪽방향 도착안내",
+  184: "경유지",
+  185: "첫번째경유지",
+  186: "두번째경유지",
+  187: "세번째경유지",
+  188: "네번째경유지",
+  189: "다섯번째경유지",
+  191: "제한속도",
+  192: "사고다발",
+  193: "급커브",
+  194: "낙석주의",
+  200: "출발지",
+  201: "도착지",
+  203: "목적지건너편",
+  233: "직진 임시",
+}
+const getDescription = (number) => descriptions[number] || -1;
+
+const grammer = (string) => string.replace('로 을', '로를')
+
 onBeforeUnmount(() => {
   clearInterval(intervalId)
 })
@@ -914,5 +978,9 @@ onBeforeUnmount(() => {
 .detailMain {
   margin: 1rem;
   border: 10px solid white;
+}
+
+.naviContent {
+  border-left: 4px dotted rgb(var(--v-theme-color3));
 }
 </style>

@@ -91,5 +91,33 @@ export const useMsgStore = defineStore('msg', () => {
     roomList.value = value
   }
 
-  return { msgList, setMsgList, pushMsgList, roomList, setRoomList }
+  const room = ref<Room>()
+
+  function setRoom(value: Room) {
+    room.value = value
+  }
+  const summary = ref<string>('')
+
+  function setSummary(value: string) {
+    summary.value = value
+  }
+
+  const roomId = ref<string>('')
+
+  function setRoomId(value: string) {
+    roomId.value = value
+  }
+  return {
+    msgList,
+    setMsgList,
+    pushMsgList,
+    roomList,
+    setRoomList,
+    room,
+    setRoom,
+    summary,
+    setSummary,
+    roomId,
+    setRoomId,
+  }
 })

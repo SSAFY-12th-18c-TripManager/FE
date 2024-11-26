@@ -23,16 +23,20 @@
   </div>
 </template>
 <script setup lang="ts">
-
-
+import { useMsgStore } from '@/stores/msg'
 import { useRoute } from 'vue-router'
-import { getRoom } from '@/api/room.js'
-import { ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
-import RoomDetailRoom from '@/components/RoomDetailRoute.vue'
+import { ref, computed } from 'vue'
+const msgStore = useMsgStore();
+const { setRoomId } = msgStore
 
 const route = useRoute()
-const roomId = ref<string>('')
-const room = ref<Room>()
+if (typeof route?.params?.roomId === 'string') {
+  console.log("route.params.roomId", route.params.roomId)
+  setRoomId(route.params.roomId);
+} else {
+  // roomId.value = '' // fallback 값 설정
+}
+
 const isReport = computed(() => {
   return route.name == 'room-report'
 })
@@ -42,19 +46,5 @@ const isMap = computed(() => {
 const isRoute = computed(() => {
   return route.name == 'room-route'
 })
-if (typeof route?.params?.roomId === 'string') {
-  roomId.value = route.params.roomId
-  getRoom(
-    roomId.value,
-    ({ data }) => {
-      room.value = data
-      console.log(data)
-    },
-    (error) => {
-      console.log(error)
-    },
-  )
-} else {
-  roomId.value = '' // fallback 값 설정
-}
+
 </script>
