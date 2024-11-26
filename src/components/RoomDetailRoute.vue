@@ -1,41 +1,10 @@
 <template>
-  <div>
-    <div class="bg-white pl-2 pt-3">
-      <v-btn color="color3" variant="flat" class="ml-1">
-        <v-icon color="color5" size="x-large">mdi-invoice-text-clock-outline </v-icon>
-        일정 보기 </v-btn>
-      <v-btn color="color4" variant="outlined" class="ml-2"> <v-icon color="color4" size="x-large">mdi-map</v-icon>
-        지도 보기 </v-btn>
-      <v-btn color="color4" variant="outlined" class="ml-2"> <v-icon color="color4"
-          size="x-large">mdi-navigation-variant-outline</v-icon>
-        길 안내 </v-btn>
-    </div>
-    <main class="detailMain h-100 text-white">
-
-      <v-card color="color5" class="vcard">
-        <v-card-title> {{ formattedRoom?.summary }} </v-card-title>
-
-        <v-card-text>
-
-          <div v-html="sample.summaryHTML">
-
-          </div>
-          <div class="result" v-if="formattedRoom?.result">
-            <div v-html="formattedRoom.result"></div>
-          </div>
-
-          <RoomDetailRoute>
-          </RoomDetailRoute>
-          <router-view />
-        </v-card-text>
-      </v-card>
-
-      <router-link :to="{ name: 'room-list' }">
-        <h4 class="pt-1 text-color2">페이지 리스트로 이동</h4>
-      </router-link>
-
-    </main>
-  </div>
+  <main class="detailMain h-100 text-white">
+    <v-card color="color5" class="vcard">
+      <div ref="tmap">
+      </div>
+    </v-card>
+  </main>
 </template>
 <script setup lang="ts">
 
@@ -90,7 +59,7 @@ const sample = {
 import { useRoute } from 'vue-router'
 import { getRoom } from '@/api/room.js'
 import { ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
-import RoomDetailRoom from '@/components/RoomDetailRoute.vue'
+
 
 const sample2 = {
   "type": "FeatureCollection",
@@ -981,9 +950,42 @@ onMounted(() => {
     updateTick.value++ // 1분마다 변경하여 computed 재계산 유도
   }, 60000)
 
+  initTmap();
 })
 
 
+const initTmap = () => {
+  // map 생성
+  // Tmapv3.Map을 이용하여, 지도가 들어갈 div, 넓이, 높이를 설정합니다.
+  map.value = new Tmapv3.Map(tmap.value, {
+    center: new Tmapv3.LatLng(markerList[0].lat, markerList[0].lng),
+    width: "100%",	// 지도의 넓이
+    height: "400px",	// 지도의 높이
+    zoom: 13	// 지도 줌레벨
+  });
+
+  map.value.on("ConfigLoad", function () {
+    addPolyline();
+  });
+}
+
+
+const addPolyline = () => {
+  console.log(markerList.map(item => {
+    return new Tmapv3.LatLng(item.lat, item.lng)
+  }));
+
+
+  var polyline = new Tmapv3.Polyline({
+    path: markerList.map(item => {
+      return new Tmapv3.LatLng(item.lat, item.lng)
+    }),
+    strokeColor: "#dd00dd",
+    strokeWeight: 6,
+    direction: true,
+    map: map.value // 지도 객체
+  });
+}
 onBeforeUnmount(() => {
   clearInterval(intervalId)
 })
@@ -1023,15 +1025,5 @@ onBeforeUnmount(() => {
 .detailMain {
   margin: 1rem;
   border: 10px solid white;
-}
-
-.result {
-  li {
-    margin: 0.25rem 1rem;
-  }
-
-  h3 {
-    margin: 0.25rem;
-  }
 }
 </style>

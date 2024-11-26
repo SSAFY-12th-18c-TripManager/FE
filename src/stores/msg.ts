@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, type HtmlHTMLAttributes } from 'vue'
 import { defineStore } from 'pinia'
 
 /*
@@ -53,8 +53,20 @@ export const useMsgStore = defineStore('msg', () => {
     content: string
     senderId: number
     isSender: boolean
-    timestamp: string
+    timestamp: Date
     voice: Blob
+  }
+
+  interface Result {
+    summary: HtmlHTMLAttributes
+    locations: [
+      {
+        locationTitle: string
+        locationSub: string
+        lat: number
+        lng: number
+      },
+    ]
   }
 
   interface Room {

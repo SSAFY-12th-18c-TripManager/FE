@@ -1,17 +1,11 @@
 <template>
   <main class="history h-100 text-white pa-3">
-    <router-link :to="{ name: 'room-detail', params: { roomId: 1 } }">
-      2
-      <h4 class="pb-1 text-color2">{{ room?.summary }}</h4>
-      <h5 class="text-color1">{{ room?.formattedTimestamp }}</h5>
-    </router-link>
     <div class="d-flex flex-column opacity-70 ml-5 mr-5 list text-color1 flex-1-0">
       <div class="border pa-4" v-for="room in formattedRoomList" key="room.roomId">
         <router-link :to="{ name: 'room-detail', params: { roomId: room.roomId } }">
           <h4 class="pb-1 text-color2">{{ room.summary }}</h4>
           <h5 class="text-color1">{{ room.formattedTimestamp }}</h5>
         </router-link>
-        {{ room }}
       </div>
     </div>
   </main>
