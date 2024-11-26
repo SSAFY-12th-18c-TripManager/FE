@@ -1,8 +1,14 @@
 <template>
-  <main class="detailMain h-100 text-white">
+  <main class="report h-100 text-white">
     <v-card color="color5" class="vcard">
-      <div ref="tmap">
-      </div>
+      <v-card-title> {{ formattedRoom?.summary }} </v-card-title>
+      <v-card-text>
+        <div v-html="sample.summaryHTML">
+        </div>
+        <div class="result" v-if="formattedRoom?.result">
+          <div v-html="formattedRoom.result"></div>
+        </div>
+      </v-card-text>
     </v-card>
   </main>
 </template>
@@ -943,49 +949,9 @@ const formatTimestamp = (timestamp) => {
   }
 }
 
-const tmap = ref(null);
-const map = ref(null);
 onMounted(() => {
-  intervalId = setInterval(() => {
-    updateTick.value++ // 1분마다 변경하여 computed 재계산 유도
-  }, 60000)
-
-  initTmap();
 })
 
-
-const initTmap = () => {
-  // map 생성
-  // Tmapv3.Map을 이용하여, 지도가 들어갈 div, 넓이, 높이를 설정합니다.
-  map.value = new Tmapv3.Map(tmap.value, {
-    center: new Tmapv3.LatLng(markerList[0].lat, markerList[0].lng),
-    width: "100%",	// 지도의 넓이
-    height: "400px",	// 지도의 높이
-    zoom: 13	// 지도 줌레벨
-  });
-
-  map.value.on("ConfigLoad", function () {
-    addPolyline();
-  });
-}
-
-
-const addPolyline = () => {
-  console.log(markerList.map(item => {
-    return new Tmapv3.LatLng(item.lat, item.lng)
-  }));
-
-
-  var polyline = new Tmapv3.Polyline({
-    path: markerList.map(item => {
-      return new Tmapv3.LatLng(item.lat, item.lng)
-    }),
-    strokeColor: "#dd00dd",
-    strokeWeight: 6,
-    direction: true,
-    map: map.value // 지도 객체
-  });
-}
 onBeforeUnmount(() => {
   clearInterval(intervalId)
 })
@@ -1022,8 +988,43 @@ onBeforeUnmount(() => {
   border: 0px solid white;
 }
 
-.detailMain {
+
+.report {
   margin: 1rem;
   border: 10px solid white;
+
+  li {
+    margin: 0.5rem 1.25rem;
+  }
+
+  h3 {
+    margin: 0.25rem;
+
+  }
+
+  h4 {
+    text-align: center;
+    padding: 0.25rem;
+    color: rgb(var(--v-theme-color3));
+  }
+
+  table {
+    width: 100%;
+    text-align: center;
+  }
+
+  th {
+
+    color: rgb(var(--v-theme-color2));
+    padding: 0.25rem;
+  }
+
+  td {
+    padding: 0 0.125rem;
+  }
+
+  hr {
+    margin: 0.25rem;
+  }
 }
 </style>

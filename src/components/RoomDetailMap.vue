@@ -1,6 +1,6 @@
 <template>
   <main class="detailMain h-100 text-white">
-    루트
+    맵
     <v-card color="color5" class="vcard">
       <div ref="tmap">
       </div>
