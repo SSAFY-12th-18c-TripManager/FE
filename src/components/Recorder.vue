@@ -306,6 +306,7 @@ const startSpeechRecognition = () => {
     sendVoiceWs({
       senderId: senderId.value,
       audio: recognizedText.value,
+      history: JSON.stringify(msgList.value)
     })
     console.log('음성 인식이 종료되었습니다.')
     recognizedText.value = ''
