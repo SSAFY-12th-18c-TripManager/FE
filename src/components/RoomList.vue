@@ -34,6 +34,7 @@ const formattedRoomList = computed(() => {
     ...room,
     formattedTimestamp: formatTimestamp(room.timestamp),
   }))
+  .reverse();
 })
 
 // 타임스탬프를 형식화하는 함수
@@ -54,13 +55,16 @@ const formatTimestamp = (timestamp) => {
   }
   const now = new Date()
   const minutesAgo = Math.floor((now - date) / 60000)
+  const hoursAgo = Math.floor(minutesAgo / 60)
+  const dayAgo = Math.floor(hoursAgo / 24)
   if (minutesAgo === 0) {
     return '방금 전'
   } else if (minutesAgo < 60) {
     return `${minutesAgo}분 전`
-  } else {
-    const hoursAgo = Math.floor(minutesAgo / 60)
+  } else if (hoursAgo < 24) {
     return `${hoursAgo}시간 전`
+  } else {
+    return `${dayAgo}일 전`
   }
 }
 onMounted(() => {

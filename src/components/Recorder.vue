@@ -1,5 +1,17 @@
 <template>
   <div class="item justify-center items-center text-white">
+    <v-dialog v-model="modalFlag" max-width="500">
+      <template v-slot:default="{ isActive }">
+        <v-card title="요약 완료">
+          <v-card-text>트매가 여행 계획을 요약해 작성했어요.</v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text="확인" @click="modalFlag = false">확인</v-btn>
+          </v-card-actions>
+        </v-card>
+      </template>
+    </v-dialog>
+
     <div class="pa-3 flex-row d-flex">
       <div @click="summary">
         <v-icon color="color5" class="mr-4" icon="mdi-chart-box-plus-outline" size="large"></v-icon>
@@ -9,7 +21,12 @@
       </div>
     </div>
     <div class="d-flex flex-grow flex-column w-100 h-100">
-      <div ref="ml" v-show="formattedMsgList" class="msgBox overflow-scroll position-absolute">
+      <div
+        ref="ml"
+        v-show="formattedMsgList"
+        class="msgBox overflow-scroll position-absolute"
+        :class="{ gra: msgList.length > 1 }"
+      >
         <div v-for="msg in formattedMsgList">
           <div class="d-flex" :class="{ send: msg.isSender }">
             <div class="msg text-color2 font-weight-medium">{{ msg.content }}</div>
@@ -20,31 +37,47 @@
             </h5>
           </div>
         </div>
-        <div v-show="isRecording">
-          <div class="d-flex" :class="{ send: true }">
-            <div class="msg text-color2 font-weight-medium">{{ recognizedText }}</div>
+        <div v-show="!isPlaying && msgList.length > 1">
+          <div class="d-flex" :class="{ send: isRecording }">
+            <div class="msg text-color2 font-weight-medium">
+              {{ recognizedText ? recognizedText : '... ' }}
+            </div>
             <h5 class="text-color5 d-flex pt-2 align-end justify-end">
               <div class="mb-6"></div>
             </h5>
           </div>
         </div>
       </div>
-      <div style="margin-top: auto"
-        class="mb-10 pb-3 position-relative justify-center d-flex align-center flex-row items-center text-color3">
+      <div
+        style="margin-top: auto"
+        class="mb-10 pb-3 position-relative justify-center d-flex align-center flex-row items-center text-color3"
+      >
         <div>
           <div class="position-relative micBox">
             <div id="container" v-if="isRecording && !isPlaying">
               <div id="gradient1"></div>
               <div id="gradient2"></div>
             </div>
-            <button @click="toggleRecording" class="position-absolute d-flex items-center justify-center recordIcon"
-              style="top: 0rem; left: 0rem; z-index: 11" :class="isRecording ? 'isRecording' : 'isNotRecording'">
-              <svg xmlns="http://www.w3.org/2000/svg" style="width: 50px; height: 50px" viewBox="0 0 24 24"
-                fill="currentColor">
-                <path class="s0"
-                  d="m12 14q0.6 0 1.1-0.2 0.6-0.3 1-0.7 0.4-0.4 0.7-1 0.2-0.5 0.2-1.1v-5c0-0.8-0.3-1.6-0.9-2.1-0.5-0.6-1.3-0.9-2.1-0.9-0.8 0-1.6 0.3-2.1 0.9-0.6 0.5-0.9 1.3-0.9 2.1v5q0 0.6 0.2 1.1 0.3 0.6 0.7 1 0.4 0.4 1 0.7 0.5 0.2 1.1 0.2z" />
-                <path class="s0"
-                  d="m19 11c0 0-0.1-0.5-0.3-0.7q-0.3-0.3-0.7-0.3-0.4 0-0.7 0.3-0.3 0.3-0.3 0.7c0 1.3-0.5 2.6-1.5 3.5-0.9 1-2.2 1.5-3.5 1.5-1.3 0-2.6-0.5-3.5-1.5-1-0.9-1.5-2.2-1.5-3.5q0-0.4-0.3-0.7-0.3-0.3-0.7-0.3-0.4 0-0.7 0.3-0.3 0.3-0.3 0.7c0.1 1.6 0.7 3.1 1.8 4.3 1.1 1.2 2.5 2 4.1 2.2 1.6 0.3 3.2 0 4.6-0.8 1.4-0.8 2.5-2.1 3-3.6 0.1 0 0.5-2.1 0.5-2.1zm-7 7q-0.2 0-0.4 0.1-0.2 0.1-0.3 0.2-0.1 0.1-0.2 0.3-0.1 0.2-0.1 0.4v2q0 0.4 0.3 0.7 0.3 0.3 0.7 0.3 0.4 0 0.7-0.3 0.3-0.3 0.3-0.7v-2q0-0.2-0.1-0.4-0.1-0.2-0.2-0.3-0.1-0.1-0.3-0.2-0.2-0.1-0.4-0.1zm7-7zm-1 4" />
+            <button
+              @click="toggleRecording"
+              class="position-absolute d-flex items-center justify-center recordIcon"
+              style="top: 0rem; left: 0rem; z-index: 11"
+              :class="isRecording ? 'isRecording' : 'isNotRecording'"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                style="width: 50px; height: 50px"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  class="s0"
+                  d="m12 14q0.6 0 1.1-0.2 0.6-0.3 1-0.7 0.4-0.4 0.7-1 0.2-0.5 0.2-1.1v-5c0-0.8-0.3-1.6-0.9-2.1-0.5-0.6-1.3-0.9-2.1-0.9-0.8 0-1.6 0.3-2.1 0.9-0.6 0.5-0.9 1.3-0.9 2.1v5q0 0.6 0.2 1.1 0.3 0.6 0.7 1 0.4 0.4 1 0.7 0.5 0.2 1.1 0.2z"
+                />
+                <path
+                  class="s0"
+                  d="m19 11c0 0-0.1-0.5-0.3-0.7q-0.3-0.3-0.7-0.3-0.4 0-0.7 0.3-0.3 0.3-0.3 0.7c0 1.3-0.5 2.6-1.5 3.5-0.9 1-2.2 1.5-3.5 1.5-1.3 0-2.6-0.5-3.5-1.5-1-0.9-1.5-2.2-1.5-3.5q0-0.4-0.3-0.7-0.3-0.3-0.7-0.3-0.4 0-0.7 0.3-0.3 0.3-0.3 0.7c0.1 1.6 0.7 3.1 1.8 4.3 1.1 1.2 2.5 2 4.1 2.2 1.6 0.3 3.2 0 4.6-0.8 1.4-0.8 2.5-2.1 3-3.6 0.1 0 0.5-2.1 0.5-2.1zm-7 7q-0.2 0-0.4 0.1-0.2 0.1-0.3 0.2-0.1 0.1-0.2 0.3-0.1 0.2-0.1 0.4v2q0 0.4 0.3 0.7 0.3 0.3 0.7 0.3 0.4 0 0.7-0.3 0.3-0.3 0.3-0.7v-2q0-0.2-0.1-0.4-0.1-0.2-0.2-0.3-0.1-0.1-0.3-0.2-0.2-0.1-0.4-0.1zm7-7zm-1 4"
+                />
               </svg>
             </button>
           </div>
@@ -52,15 +85,30 @@
             마이크 권한이 필요합니다.
           </p>
         </div>
-        <div v-show="!isRecording" class="d-flex justify-center" @click="stopAudio" style="z-index: 30">
+        <div
+          v-show="!isRecording"
+          class="d-flex justify-center"
+          @click="stopAudio"
+          style="z-index: 30"
+        >
           <h2 v-if="!isRecording && audioURL" class="position-absolute mt-8">■</h2>
-          <av-circle class="position-absolute" :outline-width="0" :progress-width="2" outline-color="skyblue"
-            bar-color="skyblue" progress-color="skyblue" :outline-meter-space="5" :playtime="false"
-            playtime-color="transparent" :src="audioURL" :audio-controls="false" :muted="true">
+          <av-circle
+            class="position-absolute"
+            :outline-width="0"
+            :progress-width="2"
+            outline-color="skyblue"
+            bar-color="skyblue"
+            progress-color="skyblue"
+            :outline-meter-space="5"
+            :playtime="false"
+            playtime-color="transparent"
+            :src="audioURL"
+            :audio-controls="false"
+            :muted="true"
+          >
             브라우저가 오디오를 지원하지 않습니다.
           </av-circle>
         </div>
-
       </div>
     </div>
   </div>
@@ -85,9 +133,9 @@ interface Msg {
 }
 
 const renew = () => {
-  //msgList.clean;
-
-
+  disconnectSocket()
+  setMsgList([])
+  // msgList.value.clean;
 }
 // 타임스탬프를 형식화하는 함수
 const formatTimestamp = (timestamp) => {
@@ -105,17 +153,17 @@ const formatTimestamp = (timestamp) => {
     // 그 외의 경우 처리: 유효하지 않은 timestamp는 현재 시간으로 초기화
     date = new Date()
   }
-  const now = new Date();
-  const minutesAgo = Math.floor((now - date) / 60000);
+  const now = new Date()
+  const minutesAgo = Math.floor((now - date) / 60000)
   if (minutesAgo === 0) {
-    return "방금 전";
+    return '방금 전'
   } else if (minutesAgo < 60) {
-    return `${minutesAgo}분 전`;
+    return `${minutesAgo}분 전`
   } else {
-    const hoursAgo = Math.floor(minutesAgo / 60);
-    return `${hoursAgo}시간 전`;
+    const hoursAgo = Math.floor(minutesAgo / 60)
+    return `${hoursAgo}시간 전`
   }
-};
+}
 
 const { msgList } = storeToRefs(msgStore)
 const isPlaying = ref(false)
@@ -136,14 +184,13 @@ const socket = ref<WebSocket | null>(null)
 const ml = ref<HTMLElement[]>([]) // ref 배열 선언
 
 const pps = () => {
-  pushMsgList(
-    {
-      isSender: true,
-      content: '음, 오늘 날씨도 좋아서 혼자 여행하고 싶은데 어딜 가는게 좋을까?fdsfjdslkfejwklfndfgvkljsdenrhfgiu2pejwnrfmroieughwekupprghbn4iuejfthvbrgekufgewhrbgiuvkerghbrfuiewsfhqwau8oisefhwsfeo8ufdbw ' + Math.random(),
-      timestamp: '2024-11-22T15:35:43',
-    }
-
-  )
+  pushMsgList({
+    isSender: true,
+    content:
+      '음, 오늘 날씨도 좋아서 혼자 여행하고 싶은데 어딜 가는게 좋을까?fdsfjdslkfejwklfndfgvkljsdenrhfgiu2pejwnrfmroieughwekupprghbn4iuejfthvbrgekufgewhrbgiuvkerghbrfuiewsfhqwau8oisefhwsfeo8ufdbw ' +
+      Math.random(),
+    timestamp: '2024-11-22T15:35:43',
+  })
   // msgList.value.push()
 }
 
@@ -198,18 +245,17 @@ const roomId = ref(0)
 const stopAudio = () => {
   audioRef.value?.pause()
 }
-let intervalId;
-const updateTick = ref(0);
+let intervalId
+const updateTick = ref(0)
 const formattedMsgList = computed(() => {
-  return msgList.value.map(msg => ({
+  return msgList.value.map((msg) => ({
     ...msg,
-    formattedTimestamp: formatTimestamp(msg.timestamp)
-  }));
-});
-
+    formattedTimestamp: formatTimestamp(msg.timestamp),
+  }))
+})
 
 onUnmounted(() => {
-  clearInterval(intervalId);
+  clearInterval(intervalId)
   if (audioRef.value) {
     // 이벤트 리스너 제거
     audioRef.value.removeEventListener('play', () => {
@@ -304,7 +350,7 @@ const startSpeechRecognition = () => {
     sendVoiceWs({
       senderId: senderId.value,
       audio: recognizedText.value,
-      history: JSON.stringify(msgList.value)
+      history: JSON.stringify(msgList.value),
     })
     console.log('음성 인식이 종료되었습니다.')
     recognizedText.value = ''
@@ -313,6 +359,18 @@ const startSpeechRecognition = () => {
   recognition.start()
 }
 
+const modalFlag = ref(false)
+
+const disconnectSocket = () => {
+  if (socket.value) {
+    socket.value.close()
+  }
+}
+
+const reconnectSocket = () => {
+  disconnectSocket() // 기존 소켓 종료
+  connectWebSocket() // 새 소켓 연결
+}
 
 const connectWebSocket = () => {
   socket.value = new WebSocket(
@@ -327,13 +385,20 @@ const connectWebSocket = () => {
     console.log('이벤트', event)
     if (typeof event.data === 'string') {
       console.log('서버 응답:', event.data)
-      let d = JSON.parse(event.data)
-      // speakAnswer(d.content) 이거 주석 풀면 프론트단에서 tts 재생됨
-      msgList.value.push({
-        isSender: false,
-        content: d.content,
-        timestamp: d.timestamp,
-      })
+      if (event.data.indexOf('```') != -1) {
+        modalFlag.value = true
+        disconnectSocket()
+        console.log('요약이 완료되었어요!')
+      } else {
+        let d = JSON.parse(event.data)
+
+        // speakAnswer(d.content) 이거 주석 풀면 프론트단에서 tts 재생됨
+        msgList.value.push({
+          isSender: false,
+          content: d.content,
+          timestamp: d.timestamp,
+        })
+      }
     } else if (event.data instanceof Blob) {
       console.log('바이너리일 경우! ')
       // const byteArray = new Uint8Array(event.data)
@@ -569,10 +634,10 @@ const toggleRecording = () => {
 }
 
 watch(isPlaying, (val) => {
-  console.log("녹음 중인가요?", val)
+  console.log('녹음 중인가요?', val)
 
   if (!val && recognizedText.value == '' && permissionGranted.value && !isRecording.value) {
-    console.log("네, 녹음중이에요")
+    console.log('네, 녹음중이에요')
     startSpeechRecognition()
   }
 })
@@ -630,7 +695,7 @@ const summary = () => {
   sendVoiceWs({
     senderId: senderId.value,
     audio: '지금까지 내용을 요약해줘',
-    history: JSON.stringify(msgList.value)
+    history: JSON.stringify(msgList.value),
   })
 }
 
@@ -653,11 +718,13 @@ const redisEnd = () => {
   max-height: 70vh;
   height: 70vh;
 
+  font-size: 0.875rem;
+}
+.gra {
   mask-image: linear-gradient(rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.5) 5%, rgb(73, 148, 144) 12%);
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: cover;
-  font-size: 0.875rem;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
   -webkit-mask-size: cover;
@@ -693,7 +760,6 @@ const redisEnd = () => {
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -744,12 +810,14 @@ i {
 }
 
 #gradient1 {
-  background: linear-gradient(70deg,
-      #15222a 0%,
-      rgb(64, 101, 149) 25%,
-      #15222a 50%,
-      rgb(64, 101, 149) 75%,
-      #15222a 100%);
+  background: linear-gradient(
+    70deg,
+    #15222a 0%,
+    rgb(64, 101, 149) 25%,
+    #15222a 50%,
+    rgb(64, 101, 149) 75%,
+    #15222a 100%
+  );
   z-index: 0;
   animation: Scroll 4s linear infinite;
   background-size: 300% 200%;
@@ -790,10 +858,12 @@ div {
   height: 9rem;
   width: 9rem;
   display: grid;
-  mask-image: radial-gradient(circle,
-      rgb(73, 148, 144) 50%,
-      rgba(0, 0, 0, 0.5) 55%,
-      rgba(0, 0, 0, 0) 70%);
+  mask-image: radial-gradient(
+    circle,
+    rgb(73, 148, 144) 50%,
+    rgba(0, 0, 0, 0.5) 55%,
+    rgba(0, 0, 0, 0) 70%
+  );
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: cover;
